@@ -75,19 +75,23 @@ class Package(unittest.TestCase):
         self.assertIn('id="1-do-less-before-doing-it-faster"', page)
         self.assertIn('src="images/0130.jpg"', page)  # assets stay as files next to the page
         self.assertIn('placeholder="Search"', page)
-        self.assertNotIn('class="player"', page)  # no YouTube source, no player
+        self.assertNotIn('class="player"', page)  # no video file, no player
 
-    def test_build_page_youtube_player(self):
+    def test_build_page_local_video_player(self):
         import json
-        mf = os.path.join(self.pkg, "manifest.json")
-        m = json.load(open(mf, encoding="utf-8"))
-        m["meta"].update(id="na1OyJ3E7Kc", url="https://www.youtube.com/watch?v=na1OyJ3E7Kc")
-        json.dump(m, open(mf, "w", encoding="utf-8"))
+        open(os.path.join(self.pkg, "video.mp4"), "w").close()
         p = run("build.py", self.pkg)
         self.assertEqual(p.returncode, 0, p.stderr)
         page = open(os.path.join(self.pkg, "index.html"), encoding="utf-8").read()
-        self.assertIn('data-id="na1OyJ3E7Kc" ', page)
-        self.assertIn('src="https://www.youtube-nocookie.com/embed/na1OyJ3E7Kc?enablejsapi=1', page)
+        self.assertIn('<video controls preload="metadata" playsinline src="video.mp4"', page)
+        self.assertIn('class="icon-btn grow"', page)
+        self.assertIn('class="icon-btn full"', page)
+        mf = os.path.join(self.pkg, "manifest.json")
+        m = json.load(open(mf, encoding="utf-8"))
+        m["options"]["use"] = "external"  # legal.md: never the full video in a page shared outside
+        json.dump(m, open(mf, "w", encoding="utf-8"))
+        run("build.py", self.pkg)
+        self.assertNotIn('class="player"', open(os.path.join(self.pkg, "index.html"), encoding="utf-8").read())
 
     def test_obsidian_export(self):
         import json
@@ -133,8 +137,8 @@ class Package(unittest.TestCase):
         p = run("build.py", self.pkg, "--clean")
         self.assertEqual(p.returncode, 0, p.stderr)
         left = set(os.listdir(self.pkg))
-        self.assertTrue({"index.html", "article.md", "images", "manifest.json"} <= left)
-        self.assertFalse({"video.mp4", "subs.en.json3", "info.json", "candidates"} & left)
+        self.assertTrue({"index.html", "article.md", "images", "manifest.json", "video.mp4"} <= left)  # the page plays it
+        self.assertFalse({"subs.en.json3", "info.json", "candidates"} & left)
 
 
 if __name__ == "__main__":

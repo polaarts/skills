@@ -6,9 +6,9 @@ Usage:
 
 The page references the package's images/ and clips/ folders (relative paths), so the talk's
 folder is the deliverable: open index.html, or zip/host the folder as is.
---clean removes the working files (video, candidates, sheets, peeks, subtitles) and keeps only
-what the page and later edits need: index.html, article.md, images/, clips/, transcript, manifest
-(external use also drops the transcript).
+--clean removes the working files (candidates, sheets, peeks, subtitles) and keeps only what the
+page and later edits need: index.html, article.md, images/, clips/, video, transcript, manifest
+(external use also drops the video and the transcript).
 
 Supports the Markdown subset style.md allows: headings, paragraphs, bullet/numbered lists,
 blockquotes, images, links, bold, italic, inline code, fenced code and pipe tables.
@@ -30,13 +30,13 @@ from common import die, load_manifest, pkg_dir, ts, vault_note  # noqa: E402
 UI = {  # sidebar strings per article language
     "es": {"toc": "Contenido", "search": "Buscar", "none": "Sin resultados", "theme": "Cambiar tema claro/oscuro",
            "obsidian": "Abrir la nota en Obsidian",
-           "serve": "Para ver el video aquí, abre la carpeta con un servidor local:"},
+           "big": "Ampliar el video", "small": "Reducir el video", "full": "Pantalla completa"},
     "en": {"toc": "Contents", "search": "Search", "none": "No results", "theme": "Toggle light/dark theme",
            "obsidian": "Open the note in Obsidian",
-           "serve": "To play the video here, open the folder through a local server:"},
+           "big": "Enlarge the video", "small": "Shrink the video", "full": "Full screen"},
     "pt": {"toc": "Conteúdo", "search": "Buscar", "none": "Nenhum resultado", "theme": "Alternar tema claro/escuro",
            "obsidian": "Abrir a nota no Obsidian",
-           "serve": "Para ver o vídeo aqui, abra a pasta com um servidor local:"},
+           "big": "Ampliar o vídeo", "small": "Reduzir o vídeo", "full": "Tela cheia"},
 }
 WORK_FILES = ("candidates", "sheets", "peek", "publish", "info.json", "candidates.json",
               "images/_preview.jpg", "article.html")
@@ -93,8 +93,12 @@ background:var(--paper-3);border:1px solid var(--line)}
 .toc .snip{display:block;margin-top:4px;font-size:12px;line-height:1.45;font-weight:400;color:var(--mute-2);overflow-wrap:anywhere}
 .toc .snip mark{background:var(--ink);color:var(--paper);padding:0 2px}
 .player{flex:none;padding:16px 20px 20px;border-top:1px solid var(--line)}
-.player p{margin:0;font-size:12px;line-height:1.5;color:var(--mute-2)}.player p code{display:inline-block;margin-top:6px}
-.player iframe{display:block;width:100%;aspect-ratio:16/9;border:1px solid var(--line);background:var(--paper-3)}
+.player video{display:block;width:100%;aspect-ratio:16/9;border:1px solid var(--line);background:#000}
+.player-bar{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.player.big{position:fixed;z-index:20;right:24px;bottom:24px;width:min(960px,calc(100vw - 348px));padding:12px;
+background:var(--paper);border:1px solid var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.player .shrink,.player.big .grow{display:none}.player.big .shrink{display:block}
+@media (max-width:900px){.player.big{left:0;right:0;bottom:0;width:auto}}
 ::highlight(tta-search){background-color:var(--ink);color:var(--paper)}
 main{width:100%;max-width:808px;margin:0 auto;padding:56px 32px 96px;min-width:0}
 h1,h2,h3{color:var(--ink);text-wrap:balance}
@@ -166,16 +170,18 @@ const canHl=window.CSS&&CSS.highlights&&typeof Highlight==='function';
 function ranges(q){const out=[],w=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);let n;
 while((n=w.nextNode())){const f=folded(n.data);let i=f.t.indexOf(q);
 while(i>-1){const r=new Range();r.setStart(n,f.m[i]);r.setEnd(n,f.m[i+q.length-1]+1);out.push(r);i=f.t.indexOf(q,i+q.length)}}return out}
-// A timestamp link to the same YouTube video seeks the sidebar player instead of leaving the page
-// (desktop only: on narrow screens the player is out of view, so the link opens YouTube as before).
-// YouTube refuses to embed in a page opened from disk (Error 153: no Referer), so show how to serve it instead.
-let yt=document.querySelector('.player iframe');
-if(yt&&location.protocol==='file:'){yt.nextElementSibling.hidden=false;yt.remove();yt=null}
-if(yt)main.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||innerWidth<=900)return;
-let u;try{u=new URL(a.href)}catch(_){return}const t=parseInt(u.searchParams.get('t'),10);
-if(u.searchParams.get('v')!==yt.dataset.id||isNaN(t))return;e.preventDefault();
-const cmd=(func,args)=>yt.contentWindow.postMessage(JSON.stringify({event:'command',func,args:args||[]}),'*');
-cmd('seekTo',[t,true]);cmd('playVideo')});
+// The sidebar plays the talk's local video file (no network, works from disk).
+// A timestamp link to the source video seeks it instead of leaving the page; on narrow screens the
+// player is out of view, so the link opens the source as before unless the player is enlarged.
+const pl=document.querySelector('.player'),vd=pl&&pl.querySelector('video');
+if(vd){const big=on=>{pl.classList.toggle('big',on);pl.querySelector('.grow').setAttribute('aria-pressed',on)};
+pl.querySelector('.grow').onclick=()=>big(true);pl.querySelector('.shrink').onclick=()=>big(false);
+pl.querySelector('.full').onclick=()=>vd.requestFullscreen?vd.requestFullscreen():vd.webkitEnterFullscreen&&vd.webkitEnterFullscreen();
+addEventListener('keydown',e=>{if(e.key==='Escape'&&pl.classList.contains('big')&&!document.fullscreenElement)big(false)});
+main.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||(innerWidth<=900&&!pl.classList.contains('big')))return;
+let u;try{u=new URL(a.href)}catch(_){return}const m=(u.searchParams.get('t')||(u.hash.match(/t=(\\d+)/)||[])[1]||'').match(/^(\\d+)/);
+u.searchParams.delete('t');u.hash='';if(!m||u.href!==vd.dataset.src)return;e.preventDefault();
+vd.currentTime=+m[1];vd.play()})}
 const empty=toc.querySelector('.empty');let hits=[];
 input.addEventListener('input',()=>{const q=fold(input.value.trim()).replace(/\\s+/g,' ');let shown=0;
 toc.classList.toggle('searching',!!q);
@@ -202,6 +208,10 @@ let t;addEventListener('scroll',()=>{cancelAnimationFrame(t);t=requestAnimationF
 MOON = '<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
 NOTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>'
 SUN = '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+GROW = _SVG + '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>'
+SHRINK = _SVG + '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>'
+FULL = _SVG + '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>'
 # Applied before first paint so a saved theme doesn't flash.
 EARLY = "<script>try{const t=localStorage.getItem('tta-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>"
 
@@ -297,10 +307,13 @@ def render(md):
     return "\n".join(out), toc
 
 
-def youtube_id(meta):
-    url = meta.get("url") or ""
-    vid = meta.get("id") or ""
-    return vid if ("youtube.com" in url or "youtu.be" in url) and re.fullmatch(r"[\w-]{11}", vid) else None
+def local_video(d, m):
+    """(file, source URL) of the talk's own video, played in the sidebar; None without one.
+    External use never ships the full video (legal.md), so it gets no player and --clean drops the file."""
+    if m["options"].get("use") == "external":
+        return None
+    name = next((n for n in sorted(os.listdir(d)) if n.startswith("video.")), None)
+    return (name, m["meta"].get("url") or "") if name else None
 
 
 def sidebar(toc, title, subtitle, ui, video=None, note=None):
@@ -315,12 +328,13 @@ def sidebar(toc, title, subtitle, ui, video=None, note=None):
                 kids += 1
         badge = f'<span class="badge">{kids}</span>' if kids else ""
         rows.append(f'<li class="l{n}"><a href="#{hid}"><span>{html.escape(t)}</span>{badge}</a></li>')
-    # enablejsapi lets timestamp clicks seek the player via postMessage.
-    player = (f'<div class="player"><iframe data-id="{html.escape(video)}" title="{html.escape(title)}" '
-              f'src="https://www.youtube-nocookie.com/embed/{html.escape(video)}?enablejsapi=1&amp;rel=0&amp;playsinline=1" '
-              f'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen '
-              f'referrerpolicy="strict-origin-when-cross-origin"></iframe>'
-              f'<p hidden>{ui["serve"]}<br><code>python3 -m http.server</code></p></div>') if video else ""
+    # video: (file name next to the page, source URL that timestamp links point to)
+    player = (f'<div class="player"><video controls preload="metadata" playsinline src="{quote(video[0])}" '
+              f'data-src="{html.escape(video[1])}" title="{html.escape(title)}"></video><div class="player-bar">'
+              f'<button class="icon-btn grow" type="button" aria-pressed="false" aria-label="{ui["big"]}" title="{ui["big"]}">{GROW}</button>'
+              f'<button class="icon-btn shrink" type="button" aria-label="{ui["small"]}" title="{ui["small"]}">{SHRINK}</button>'
+              f'<button class="icon-btn full" type="button" aria-label="{ui["full"]}" title="{ui["full"]}">{FULL}</button>'
+              f'</div></div>') if video else ""
     return (f'<aside class="side"><div class="side-head"><div class="side-title"><b>{html.escape(title)}</b>'
             f'<span>{html.escape(subtitle)}</span></div>'
             + (f'<a class="icon-btn" href="obsidian://open?path={quote(note)}" aria-label="{ui["obsidian"]}" '
@@ -331,9 +345,10 @@ def sidebar(toc, title, subtitle, ui, video=None, note=None):
             f'<nav class="toc" aria-label="{ui["toc"]}"><ul>{"".join(rows)}</ul><p class="empty" hidden>{ui["none"]}</p></nav>{player}</aside>')
 
 def clean(d, external):
+    # Internal pages play the local video in the sidebar, so it stays; external use drops it (legal.md).
     # legal.md: an externally shared folder must not carry the full transcript.
     extra = ("transcript.md", "transcript.json") if external else ()
-    for name in WORK_FILES + extra + tuple(n for n in os.listdir(d) if n.startswith(("video.", "subs."))):
+    for name in WORK_FILES + extra + tuple(n for n in os.listdir(d) if n.startswith(("video.", "subs.") if external else ("subs.",))):
         p = os.path.join(d, name)
         if os.path.isdir(p) and not os.path.islink(p):
             shutil.rmtree(p)
@@ -358,7 +373,7 @@ def main():
     lang = m["options"].get("lang", "es")
     meta = m["meta"]
     subtitle = " · ".join(x for x in (meta.get("speaker_or_channel"), ts(meta["duration"]) if meta.get("duration") else None) if x)
-    nav = sidebar(toc, html.unescape(re.sub(r"<[^>]+>", "", inline(title))), subtitle, UI.get(lang, UI["en"]), youtube_id(meta),
+    nav = sidebar(toc, html.unescape(re.sub(r"<[^>]+>", "", inline(title))), subtitle, UI.get(lang, UI["en"]), local_video(d, m),
                   # The link holds an absolute local path, so it never goes into pages meant to be shared outside.
                   None if m["options"].get("use") == "external" else vault_note(d)) if toc else ""
     page = (f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8">'

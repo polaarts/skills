@@ -68,7 +68,8 @@ def fetch_remote(url, root, max_h):
 
     if not any(n.startswith("video.") for n in os.listdir(d)):
         run(["yt-dlp", "--no-warnings", "-q",
-             "-f", f"bv*[height<={max_h}]+ba/b[height<={max_h}]/b",
+             # H.264 first: the page plays this file in <video>, and Safari may not decode AV1/VP9.
+             "-f", f"bv*[height<={max_h}][vcodec^=avc1]+ba[ext=m4a]/bv*[height<={max_h}]+ba/b[height<={max_h}]/b",
              "--merge-output-format", "mp4",
              "-o", os.path.join(d, "video.%(ext)s"), url])
 

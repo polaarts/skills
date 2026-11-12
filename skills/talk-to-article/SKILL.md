@@ -32,11 +32,12 @@ file gets `<file-name>-<hash>`). The output is **always HTML**: no other destina
 The finished folder is the deliverable — open `index.html`, or zip/host the folder as is:
 `index.html` (fixed, non-collapsible sidebar card with the talk's title, a search box over
 headings and section text — ⌘K on macOS, Ctrl+K elsewhere — and the table of contents, which
-highlights the section being read; a light/dark toggle that remembers the choice; for YouTube
-talks, the video at the bottom, which screenshot timestamps seek to — it plays only when the
-folder is served, e.g. `python3 -m http.server`, not opened from disk) · `images/` · `clips/` · `article.md` (source the page is built from)
-· `transcript.md` · `manifest.json`. While working it also holds the video, `candidates/`,
-`sheets/` and `peek/`; `build.py --clean` removes them at the end.
+highlights the section being read; a light/dark toggle that remembers the choice; for internal
+use, the talk's own video file at the bottom, with buttons to enlarge it and go full screen, which
+screenshot timestamps seek to — it works opened from disk) · `video.mp4` (internal use only) ·
+`images/` · `clips/` · `article.md` (source the page is built from) · `transcript.md` ·
+`manifest.json`. While working it also holds `candidates/`, `sheets/` and `peek/`;
+`build.py --clean` removes them at the end (external use also drops the video: `legal.md`).
 
 Run scripts as `python3 <skill-dir>/scripts/<name>.py ...` (`python` on Windows).
 `<pkg>` below is the package path, its folder name, or just the video id.
@@ -139,7 +140,7 @@ Extras:
 
 ```
 python3 scripts/build.py <pkg>            # writes <pkg>/index.html (H2/H3 become the table of contents)
-python3 scripts/build.py <pkg> --clean    # last run: also deletes video, candidates, sheets, peeks
+python3 scripts/build.py <pkg> --clean    # last run: also deletes candidates, sheets, peeks (and the video, for external use)
 ```
 Headings are the table of contents, so keep them short and meaningful. Open `index.html`
 (e.g. `open` on macOS) and check it, then rebuild with `--clean` as the final step. Images and

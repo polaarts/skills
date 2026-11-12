@@ -22,10 +22,12 @@ All notable changes are listed here. The format follows
 - Monochrome page design shared with the project site (`site/index.html`): hairline borders,
   square corners, Geist and Geist Mono embedded from `assets/fonts/` (SIL OFL 1.1).
 
-- YouTube player at the bottom of the sidebar. Clicking a screenshot's timestamp seeks it to
-  that second instead of opening YouTube (wide screens; on narrow ones the link still opens
-  YouTube). Opened from disk (`file://`), YouTube refuses the embed, so the sidebar shows how to
-  serve the folder instead.
+- Video player at the bottom of the sidebar for internal use. It plays the talk's own
+  `video.mp4`, kept in the folder, so it works opened from disk; buttons enlarge it into a
+  floating panel or go full screen. Clicking a screenshot's timestamp seeks it to that second
+  instead of opening YouTube (wide screens, or narrow ones while enlarged). External use gets no
+  player and `--clean` deletes the video (`legal.md`). `fetch.py` prefers H.264, which every
+  browser plays.
 - `obsidian.py`: copies a finished article into an Obsidian vault as a note with properties
   (speaker, url, date, duration, tags, status), the YouTube video embedded, the first mention
   of each existing vault note turned into a `[[wikilink]]`, and a `Talks.base` table of every

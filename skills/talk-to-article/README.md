@@ -97,9 +97,9 @@ Ask your agent in plain words:
 or invoke the skill directly with `/talk-to-article <url>`. Playlists and lists of URLs are
 processed in batch with the same options.
 
-Articles go to `~/talk-articles/`. When the article is done, the skill deletes the downloaded
-video and intermediate files (`build.py --clean`). If you later want more screenshots, running
-it again downloads the video again.
+Articles go to `~/talk-articles/`. When the article is done, the skill deletes the intermediate
+files (`build.py --clean`). For internal use it keeps the downloaded video, which the page plays
+in its sidebar; for external use it deletes it too, and running it again downloads it again.
 
 ## How it works
 
