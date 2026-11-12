@@ -22,6 +22,11 @@ All notable changes are listed here. The format follows
 - Monochrome page design shared with the project site (`site/index.html`): hairline borders,
   square corners, Geist and Geist Mono embedded from `assets/fonts/` (SIL OFL 1.1).
 
+- YouTube player at the bottom of the sidebar. Clicking a screenshot's timestamp seeks it to
+  that second instead of opening YouTube (wide screens; on narrow ones the link still opens
+  YouTube). Opened from disk (`file://`), YouTube refuses the embed, so the sidebar shows how to
+  serve the folder instead.
+
 ### Fixed
 - Page search now covers the intro above the first heading, shows a snippet of the matching
   text under each result, highlights every match in the article, and jumps to the first match

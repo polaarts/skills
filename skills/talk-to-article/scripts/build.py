@@ -27,9 +27,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import die, load_manifest, pkg_dir, ts  # noqa: E402
 
 UI = {  # sidebar strings per article language
-    "es": {"toc": "Contenido", "search": "Buscar", "none": "Sin resultados", "theme": "Cambiar tema claro/oscuro"},
-    "en": {"toc": "Contents", "search": "Search", "none": "No results", "theme": "Toggle light/dark theme"},
-    "pt": {"toc": "Conteúdo", "search": "Buscar", "none": "Nenhum resultado", "theme": "Alternar tema claro/escuro"},
+    "es": {"toc": "Contenido", "search": "Buscar", "none": "Sin resultados", "theme": "Cambiar tema claro/oscuro",
+           "serve": "Para ver el video aquí, abre la carpeta con un servidor local:"},
+    "en": {"toc": "Contents", "search": "Search", "none": "No results", "theme": "Toggle light/dark theme",
+           "serve": "To play the video here, open the folder through a local server:"},
+    "pt": {"toc": "Conteúdo", "search": "Buscar", "none": "Nenhum resultado", "theme": "Alternar tema claro/escuro",
+           "serve": "Para ver o vídeo aqui, abra a pasta com um servidor local:"},
 }
 WORK_FILES = ("candidates", "sheets", "peek", "publish", "info.json", "candidates.json",
               "images/_preview.jpg", "article.html")
@@ -85,6 +88,9 @@ background:var(--paper-3);border:1px solid var(--line)}
 .toc.searching .badge{display:none}
 .toc .snip{display:block;margin-top:4px;font-size:12px;line-height:1.45;font-weight:400;color:var(--mute-2);overflow-wrap:anywhere}
 .toc .snip mark{background:var(--ink);color:var(--paper);padding:0 2px}
+.player{flex:none;padding:16px 20px 20px;border-top:1px solid var(--line)}
+.player p{margin:0;font-size:12px;line-height:1.5;color:var(--mute-2)}.player p code{display:inline-block;margin-top:6px}
+.player iframe{display:block;width:100%;aspect-ratio:16/9;border:1px solid var(--line);background:var(--paper-3)}
 ::highlight(tta-search){background-color:var(--ink);color:var(--paper)}
 main{width:100%;max-width:808px;margin:0 auto;padding:56px 32px 96px;min-width:0}
 h1,h2,h3{color:var(--ink);text-wrap:balance}
@@ -156,6 +162,16 @@ const canHl=window.CSS&&CSS.highlights&&typeof Highlight==='function';
 function ranges(q){const out=[],w=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);let n;
 while((n=w.nextNode())){const f=folded(n.data);let i=f.t.indexOf(q);
 while(i>-1){const r=new Range();r.setStart(n,f.m[i]);r.setEnd(n,f.m[i+q.length-1]+1);out.push(r);i=f.t.indexOf(q,i+q.length)}}return out}
+// A timestamp link to the same YouTube video seeks the sidebar player instead of leaving the page
+// (desktop only: on narrow screens the player is out of view, so the link opens YouTube as before).
+// YouTube refuses to embed in a page opened from disk (Error 153: no Referer), so show how to serve it instead.
+let yt=document.querySelector('.player iframe');
+if(yt&&location.protocol==='file:'){yt.nextElementSibling.hidden=false;yt.remove();yt=null}
+if(yt)main.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||innerWidth<=900)return;
+let u;try{u=new URL(a.href)}catch(_){return}const t=parseInt(u.searchParams.get('t'),10);
+if(u.searchParams.get('v')!==yt.dataset.id||isNaN(t))return;e.preventDefault();
+const cmd=(func,args)=>yt.contentWindow.postMessage(JSON.stringify({event:'command',func,args:args||[]}),'*');
+cmd('seekTo',[t,true]);cmd('playVideo')});
 const empty=toc.querySelector('.empty');let hits=[];
 input.addEventListener('input',()=>{const q=fold(input.value.trim()).replace(/\\s+/g,' ');let shown=0;
 toc.classList.toggle('searching',!!q);
@@ -276,7 +292,13 @@ def render(md):
     return "\n".join(out), toc
 
 
-def sidebar(toc, title, subtitle, ui):
+def youtube_id(meta):
+    url = meta.get("url") or ""
+    vid = meta.get("id") or ""
+    return vid if ("youtube.com" in url or "youtu.be" in url) and re.fullmatch(r"[\w-]{11}", vid) else None
+
+
+def sidebar(toc, title, subtitle, ui, video=None):
     # The intro (text above the first heading) has no contents entry; this one only shows as a search result.
     rows = [f'<li class="l2 intro" hidden><a href="#top"><span>{html.escape(title)}</span></a></li>']
     for i, (n, hid, t) in enumerate(toc):
@@ -288,12 +310,18 @@ def sidebar(toc, title, subtitle, ui):
                 kids += 1
         badge = f'<span class="badge">{kids}</span>' if kids else ""
         rows.append(f'<li class="l{n}"><a href="#{hid}"><span>{html.escape(t)}</span>{badge}</a></li>')
+    # enablejsapi lets timestamp clicks seek the player via postMessage.
+    player = (f'<div class="player"><iframe data-id="{html.escape(video)}" title="{html.escape(title)}" '
+              f'src="https://www.youtube-nocookie.com/embed/{html.escape(video)}?enablejsapi=1&amp;rel=0&amp;playsinline=1" '
+              f'allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen '
+              f'referrerpolicy="strict-origin-when-cross-origin"></iframe>'
+              f'<p hidden>{ui["serve"]}<br><code>python3 -m http.server</code></p></div>') if video else ""
     return (f'<aside class="side"><div class="side-head"><div class="side-title"><b>{html.escape(title)}</b>'
             f'<span>{html.escape(subtitle)}</span></div>'
             f'<button class="icon-btn theme" type="button" aria-label="{ui["theme"]}" title="{ui["theme"]}">{MOON}{SUN}</button></div>'
             f'<div class="search" role="search"><input type="search" placeholder="{ui["search"]}" aria-label="{ui["search"]}" autocomplete="off">'
             f'<kbd>Ctrl K</kbd></div>'
-            f'<nav class="toc" aria-label="{ui["toc"]}"><ul>{"".join(rows)}</ul><p class="empty" hidden>{ui["none"]}</p></nav></aside>')
+            f'<nav class="toc" aria-label="{ui["toc"]}"><ul>{"".join(rows)}</ul><p class="empty" hidden>{ui["none"]}</p></nav>{player}</aside>')
 
 def clean(d, external):
     # legal.md: an externally shared folder must not carry the full transcript.
@@ -323,7 +351,7 @@ def main():
     lang = m["options"].get("lang", "es")
     meta = m["meta"]
     subtitle = " · ".join(x for x in (meta.get("speaker_or_channel"), ts(meta["duration"]) if meta.get("duration") else None) if x)
-    nav = sidebar(toc, html.unescape(re.sub(r"<[^>]+>", "", inline(title))), subtitle, UI.get(lang, UI["en"])) if toc else ""
+    nav = sidebar(toc, html.unescape(re.sub(r"<[^>]+>", "", inline(title))), subtitle, UI.get(lang, UI["en"]), youtube_id(meta)) if toc else ""
     page = (f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
             f"<title>{html.escape(title)}</title>{EARLY}<style>{font_faces()}{CSS}</style></head><body>"

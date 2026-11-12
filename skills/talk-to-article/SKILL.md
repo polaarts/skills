@@ -32,7 +32,9 @@ file gets `<file-name>-<hash>`). The output is **always HTML**: no other destina
 The finished folder is the deliverable — open `index.html`, or zip/host the folder as is:
 `index.html` (fixed, non-collapsible sidebar card with the talk's title, a search box over
 headings and section text — ⌘K on macOS, Ctrl+K elsewhere — and the table of contents, which
-highlights the section being read; a light/dark toggle that remembers the choice) · `images/` · `clips/` · `article.md` (source the page is built from)
+highlights the section being read; a light/dark toggle that remembers the choice; for YouTube
+talks, the video at the bottom, which screenshot timestamps seek to — it plays only when the
+folder is served, e.g. `python3 -m http.server`, not opened from disk) · `images/` · `clips/` · `article.md` (source the page is built from)
 · `transcript.md` · `manifest.json`. While working it also holds the video, `candidates/`,
 `sheets/` and `peek/`; `build.py --clean` removes them at the end.
 

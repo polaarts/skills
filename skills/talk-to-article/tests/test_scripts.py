@@ -74,6 +74,19 @@ class Package(unittest.TestCase):
         self.assertIn('id="1-do-less-before-doing-it-faster"', page)
         self.assertIn('src="images/0130.jpg"', page)  # assets stay as files next to the page
         self.assertIn('placeholder="Search"', page)
+        self.assertNotIn('class="player"', page)  # no YouTube source, no player
+
+    def test_build_page_youtube_player(self):
+        import json
+        mf = os.path.join(self.pkg, "manifest.json")
+        m = json.load(open(mf, encoding="utf-8"))
+        m["meta"].update(id="na1OyJ3E7Kc", url="https://www.youtube.com/watch?v=na1OyJ3E7Kc")
+        json.dump(m, open(mf, "w", encoding="utf-8"))
+        p = run("build.py", self.pkg)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        page = open(os.path.join(self.pkg, "index.html"), encoding="utf-8").read()
+        self.assertIn('data-id="na1OyJ3E7Kc" ', page)
+        self.assertIn('src="https://www.youtube-nocookie.com/embed/na1OyJ3E7Kc?enablejsapi=1', page)
 
     def test_clean_keeps_deliverable(self):
         for name in ("video.mp4", "subs.en.json3", "info.json"):
