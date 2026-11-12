@@ -3,26 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>talk-to-article — Agent Skill</title>
-<meta name="description" content="Turn a recorded talk into a technical blog-style article with screenshots. An agent skill for Claude Code.">
+<title>Polaarts Skills</title>
+<meta name="description" content="Agent skills by polaarts, ready to install in Claude Code and other agents.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <style>
-/* Tokens copied from agenticskills.io (light theme, the only one it ships) */
+/* Tokens copied from agenticskills.io (light theme, the only one it ships); same as site/skills/<name>/ */
 :root{
   --background:#fff;--foreground:#0a0a0a;
-  --ink:#0a0a0a;--ink-2:#161616;--ink-3:#262626;
-  --mute-1:#3d3d3d;--mute-2:#6b6b6b;--mute-3:#9a9a9a;
+  --ink:#0a0a0a;--mute-1:#3d3d3d;--mute-2:#6b6b6b;--mute-3:#9a9a9a;
   --line:#e6e6e6;--line-2:#dcdcdc;--line-3:#f0f0f0;
-  --paper:#fff;--paper-2:#fafafa;--paper-3:#f4f4f4;--paper-4:#ededed;
-  --btn-edge:#1f1f1f;
-  --radius:0;
+  --paper:#fff;--paper-2:#fafafa;--paper-3:#f4f4f4;
   --font-sans:"Geist","Geist Fallback",ui-sans-serif,system-ui,sans-serif;
   --font-mono:"Geist Mono","Geist Mono Fallback",ui-monospace,monospace;
-  --ease:cubic-bezier(.4,0,.2,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border:0 solid}
 html{-webkit-text-size-adjust:100%;line-height:1.5;font-family:var(--font-sans);-webkit-tap-highlight-color:transparent}
@@ -30,159 +24,70 @@ body{background:var(--background);color:var(--foreground);min-height:100vh;displ
 ::selection{background:var(--ink);color:#fff}
 h1,h2,h3{font-weight:inherit;font-size:inherit;text-wrap:balance}
 a{color:inherit;text-decoration:none}
-button{font:inherit;color:inherit;background:none;cursor:pointer}
-img{max-width:100%;display:block}
+button,input,select{font:inherit;color:inherit}
+button{background:none;cursor:pointer}
 svg.i{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.mono{font-family:var(--font-mono)}
 .as-wrap{max-width:1280px;margin:0 auto;padding:0 32px}
 .as-micro{font-family:var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute-2);font-size:11px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 
-.btn-ink{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.12em;color:#fff;background:var(--ink);border:1px solid var(--ink);transition:background .15s,color .15s}
-.btn-ink:hover{background:#fff;color:var(--ink)}
-
-/* Page */
-main{flex:1;background:var(--background)}
+main{flex:1}
 .page{padding:40px 0 64px;background:#fff}
 .langbar{display:flex;justify-content:flex-end;margin-bottom:24px}
-.layout{display:grid;grid-template-columns:1fr;gap:48px}
-.layout>*,.hgrid>*,.shots>*{min-width:0} /* grid items default to min-width:auto and overflow on phones */
-h1.title{font-size:36px;line-height:1.1;font-weight:500;letter-spacing:-.03em;color:var(--ink);margin-bottom:8px}
-.byline{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mute-2);flex-wrap:wrap}
-.byline a,.byline b{font-weight:500;color:var(--ink);text-underline-offset:4px}
-.byline a:hover{text-decoration:underline}
-.lead{font-size:16px;color:var(--mute-1);line-height:1.625}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute-2);background:var(--paper-3);padding:4px 12px;border:1px solid var(--line)}
-.metrics{display:flex;flex-wrap:wrap;align-items:center;gap:24px;margin-bottom:40px;padding-bottom:32px;border-bottom:1px solid var(--line)}
-.metric{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mute-2)}
-.metric b{font-weight:500;color:var(--ink)}
-.mb8{margin-bottom:32px}.mb10{margin-bottom:40px}
-h2.sec{font-size:18px;line-height:1.55;font-weight:600;color:var(--ink);margin-bottom:16px;scroll-margin-top:24px}
-.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
-.sec-head h2.sec{margin:0}
-.sec-head a{font-size:12px;color:var(--mute-2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em}
-.sec-head a:hover{color:var(--ink)}
-
-/* Tabs + code */
-.tabs{display:inline-flex;margin-bottom:16px;border-left:1px solid var(--line);border-top:1px solid var(--line);flex-wrap:wrap}
-.tabs button{padding:8px 16px;font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--mute-2);transition:all .15s}
+.tabs{display:inline-flex;border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.tabs button{padding:6px 12px;font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--mute-2);transition:all .15s}
 .tabs button:hover{color:var(--ink);background:var(--paper-2)}
-.tabs button[aria-selected=true],.tabs button[aria-pressed=true]{background:var(--ink);color:#fff}
-.langbar .tabs{margin:0}
-.langbar .tabs button{padding:6px 12px;font-size:11px}
-.code{position:relative}
-.code pre{background:var(--ink);border:1px solid var(--ink);padding:12px 56px 12px 16px;overflow-x:auto}
-.code code{font-size:14px;line-height:1.6;font-family:var(--font-mono);color:#fff;white-space:pre}
-.code .muted{color:var(--mute-3)}
-.copy{position:absolute;top:8px;right:8px;padding:6px;border:1px solid var(--btn-edge);background:var(--ink);color:#fff;transition:background .15s,color .15s;display:flex}
-.copy:hover{background:#fff;color:var(--ink)}
-.copy svg.i{width:14px;height:14px}
-.note{margin-top:20px;border:1px solid var(--line);background:var(--paper-2);padding:12px 16px;font-size:14px;color:var(--mute-1);line-height:1.375;display:flex;flex-direction:column;gap:12px}
-.note b{color:var(--ink);font-weight:500}
-.note p a{text-decoration:underline;text-underline-offset:2px}
-.note p a:hover{color:var(--ink)}
-.note code{font-family:var(--font-mono)}
-.note .btn-ink{font-size:14px;text-transform:none;letter-spacing:0;flex-shrink:0}
-.note .btn-ink:hover{background:transparent}
+.tabs button[aria-pressed=true]{background:var(--ink);color:#fff}
 
-/* Hairline grids */
-.hgrid{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line);border-left:1px solid var(--line)}
-.hgrid>*{background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px}
-.hgrid>.alt{background:var(--paper-2)}
-.hgrid h2,.hgrid h3.h{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:16px}
-.ticks{list-style:none;font-size:14px;color:var(--mute-1);display:flex;flex-direction:column;gap:8px}
-.ticks li{display:flex;align-items:flex-start;gap:8px;line-height:1.625}
-.ticks .g{color:var(--ink);flex-shrink:0}
-.ticks .x{color:var(--mute-2);flex-shrink:0}
-.ticks code{font-family:var(--font-mono);font-size:12px;color:var(--ink)}
-.ticks a{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
-.ticks b{color:var(--ink);font-weight:600}
-.fine{margin-top:16px;font-size:12px;color:var(--mute-2)}
+/* Collection header (category header in the reference) */
+.head{margin-bottom:40px}
+.head h1{font-size:36px;line-height:1.1;font-weight:500;letter-spacing:-.03em;color:var(--ink);margin:12px 0}
+.head p.d{font-size:16px;line-height:1.5;color:var(--mute-1);max-width:42rem}
+.head p.c{margin-top:8px}
 
-/* Shots */
-.shots{display:grid;grid-template-columns:1fr;border-top:1px solid var(--line);border-left:1px solid var(--line)}
-.shots figure{border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--paper-2);padding:16px}
-.shots img{border:1px solid var(--line);width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top;background:var(--paper-3)}
-.shots figcaption{margin-top:12px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+/* Search + sort */
+.tools{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:32px}
+.search{position:relative;width:100%}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mute-3)}
+.search input{width:100%;padding:10px 16px 10px 40px;font-size:14px;background:#fff;border:1px solid var(--line);color:var(--ink);outline:none;border-radius:0;transition:border-color .15s}
+.search input::placeholder{color:var(--mute-3)}
+.search input:focus{border-color:var(--ink)}
+.search input::-webkit-search-cancel-button{display:none}
+.sort{position:relative}
+.sort select{appearance:none;-webkit-appearance:none;padding:8px 32px 8px 12px;font-size:12px;background:#fff;border:1px solid var(--line);color:var(--mute-1);cursor:pointer;outline:none;border-radius:0;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em}
+.sort select:focus{border-color:var(--ink)}
+.sort svg{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--mute-2);pointer-events:none}
 
-/* Pipeline */
-.steps>a{display:flex;flex-direction:column;gap:6px;transition:background .15s}
-.steps>a:hover{background:var(--paper-2)}
-.steps .n{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;color:var(--mute-3);text-transform:uppercase}
-.steps h3{font-size:14px;font-weight:600;color:var(--ink)}
-.steps code{font-family:var(--font-mono);font-size:12px;color:var(--mute-2)}
-.steps p{font-size:12px;color:var(--mute-1);line-height:1.625}
+/* Cards */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.card{position:relative;display:flex;flex-direction:column;height:100%;padding:20px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transition:background .2s}
+.card:hover{background:var(--paper-2);outline:1px solid var(--ink);outline-offset:-1px;z-index:1}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.card-top>div{min-width:0;flex:1}
+.card h3{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .by{font-size:12px;color:var(--mute-2);margin-top:2px}
+.card .by span{color:var(--mute-1)}
+.badge{flex-shrink:0;font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border:1px solid var(--ink);background:#fff;color:var(--ink)}
+.card p.s{font-size:12px;color:var(--mute-1);line-height:1.625;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tag{font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border:1px solid var(--line);background:#fff;color:var(--mute-1)}
+.tag.alt{background:var(--paper-3);color:var(--mute-2)}
+.plats{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;flex:1;align-content:flex-start}
+.plat{font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute-2);background:var(--paper-3);border:1px solid var(--line);padding:2px 6px;height:fit-content}
+.card-foot{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--line);margin-top:auto}
+.card-foot .m{display:flex;align-items:center;gap:12px}
+.card-foot .m span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mute-2)}
+.card-foot .m svg.i{width:12px;height:12px}
+.open{display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .15s}
+.open svg.i{width:12px;height:12px}
+.card:hover .open,.card:focus-visible .open{opacity:1}
+.empty{padding:48px 24px;text-align:center;font-size:14px;color:var(--mute-2);border-right:1px solid var(--line);border-bottom:1px solid var(--line);grid-column:1/-1}
+.empty button{margin-top:12px;text-decoration:underline;text-underline-offset:4px;color:var(--ink)}
+.skel{height:220px;background:var(--paper-2);border-right:1px solid var(--line);border-bottom:1px solid var(--line);animation:as-pulse 2.4s ease-in-out infinite}
+@keyframes as-pulse{0%,100%{opacity:.4}50%{opacity:1}}
 
-/* Prose card (SKILL.md body styles from the reference) */
-.card{background:#fff;border:1px solid var(--line);padding:24px}
-.prose{font-size:14px;color:var(--mute-1);line-height:1.625;overflow-wrap:anywhere}
-.prose>:first-child{margin-top:0!important}
-.prose h1{font-size:24px;line-height:1.33;font-weight:600;color:var(--ink);margin:32px 0 16px}
-.prose h2{font-size:20px;line-height:1.4;font-weight:600;color:var(--ink);margin:32px 0 12px;scroll-margin-top:24px}
-.prose h3{font-size:16px;font-weight:600;color:var(--ink);margin:24px 0 8px;scroll-margin-top:24px}
-.prose p{margin-bottom:16px}
-.prose ul,.prose ol{padding-left:20px;margin-bottom:16px}
-.prose ul{list-style:disc}.prose ol{list-style:decimal}
-.prose li+li{margin-top:6px}
-.prose li>ul,.prose li>ol{margin:6px 0 0}
-.prose strong{color:var(--ink);font-weight:600}
-.prose a{color:var(--ink);font-weight:500;text-decoration:underline;text-underline-offset:4px}
-.prose :not(pre)>code{font-family:var(--font-mono);font-size:12.5px;color:var(--ink);background:var(--paper-3);border:1px solid var(--line);padding:1px 5px}
-.prose pre{background:var(--ink);color:#fff;padding:12px 16px;overflow-x:auto;margin-bottom:16px;border:1px solid var(--ink)}
-.prose pre code{font-family:var(--font-mono);font-size:13px;line-height:1.6}
-.prose blockquote{border-left:2px solid var(--ink);padding-left:16px;margin-bottom:16px}
-.prose hr{border-top:1px solid var(--line);margin:32px 0}
-.prose .tbl{overflow-x:auto;margin-bottom:16px;border:1px solid var(--line)}
-.prose table{border-collapse:collapse;width:100%;font-size:13px}
-.prose th,.prose td{border-bottom:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
-.prose tr>*+*{border-left:1px solid var(--line)}
-.prose tr:last-child td{border-bottom:0}
-.prose th{background:var(--paper-2);color:var(--ink);font-weight:600}
-.synced{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute-3);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.synced a{text-decoration:underline}
-.synced a:hover{color:var(--ink)}
-.src-note{font-size:12px;color:var(--mute-2);margin:-8px 0 16px}
-.skeleton{height:12px;background:var(--paper-3);margin-bottom:12px;animation:as-pulse 2.4s ease-in-out infinite}
-@keyframes as-pulse{0%,100%{opacity:.3}50%{opacity:1}}
-
-/* FAQ */
-.faq{border-top:1px solid var(--line)}
-.faq details{border-bottom:1px solid var(--line)}
-.faq summary{list-style:none;display:flex;justify-content:space-between;gap:16px;padding:16px 4px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
-.faq summary::-webkit-details-marker{display:none}
-.faq summary svg{transition:transform .2s var(--ease);color:var(--mute-2)}
-.faq details[open] summary svg{transform:rotate(180deg)}
-.faq details p{padding:0 4px 16px;font-size:14px;color:var(--mute-1);line-height:1.625}
-.faq code{font-family:var(--font-mono);font-size:12px;color:var(--ink)}
-
-/* Sidebar */
-.side{display:flex;flex-direction:column;gap:16px}
-.box{padding:20px;background:#fff;border:1px solid var(--line)}
-.box-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
-.box-head span{font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute-3)}
-.rows{display:flex;flex-direction:column;gap:12px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
-.row>span:first-child{color:var(--mute-2);display:flex;align-items:center;gap:8px;white-space:nowrap}
-.row>span:first-child svg.i{width:14px;height:14px}
-.row .v{font-weight:500;color:var(--ink);font-size:12px}
-.row .v.m{font-family:var(--font-mono)}
-.row a.v{text-underline-offset:4px;display:inline-flex;align-items:center;gap:4px;max-width:72%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row a.v:hover{text-decoration:underline}
-.row.top{padding-top:12px;border-top:1px solid var(--line)}
-.author{display:flex;align-items:center;gap:12px}
-.author .av{width:40px;height:40px;border:1px solid var(--line);background:var(--paper-3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--mute-1);overflow:hidden}
-.author .av img{width:100%;height:100%;object-fit:cover;filter:grayscale(1)}
-.author p:first-child{font-size:14px;font-weight:500;color:var(--ink)}
-.author p+p{font-size:12px;color:var(--mute-2);font-family:var(--font-mono)}
-.author:hover p:first-child{text-decoration:underline;text-underline-offset:4px}
-.tags{display:flex;flex-wrap:wrap;gap:6px}
-.tag{font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute-2);background:var(--paper-3);padding:4px 8px;border:1px solid var(--line)}
-.report{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute-2);transition:color .15s}
-.report:hover{color:var(--ink)}
-.report svg.i{width:12px;height:12px}
-
-/* Footer */
+/* Footer (same as the skill pages) */
 footer{border-top:1px solid var(--line);background:#fff;margin-top:auto}
 footer .as-wrap{padding-top:48px;padding-bottom:48px}
 .logo{display:inline-flex;align-items:center}
@@ -190,499 +95,206 @@ footer .as-wrap{padding-top:48px;padding-bottom:48px}
 .logo .word{font-size:18px;font-weight:600;letter-spacing:-.03em;color:var(--ink)}
 footer p{font-size:12px;color:var(--mute-1);margin-top:12px;line-height:1.625;max-width:320px}
 
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:8px 14px;z-index:100}
-
-@media (min-width:640px){.note{flex-direction:row;align-items:center}}
+@media (min-width:640px){
+  .tools{flex-direction:row;align-items:center;justify-content:space-between}
+  .search{width:320px}
+}
 @media (min-width:768px){
-  h1.title{font-size:60px;line-height:1}
-  .hgrid.c2,.shots,.steps{grid-template-columns:1fr 1fr}
+  .head h1{font-size:60px;line-height:1}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media (min-width:1024px){
-  .layout{grid-template-columns:1fr 340px}
-  .side{position:sticky;top:24px;max-height:calc(100vh - 48px);overflow-y:auto;overscroll-behavior:contain;align-self:start}
-  .card{padding:32px}
-  .steps{grid-template-columns:repeat(4,1fr)}
-}
+@media (min-width:1024px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:639px){.as-wrap{padding:0 16px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<main id="app"></main>
-<footer id="footer"></footer>
+<main>
+  <div class="page"><div class="as-wrap">
+    <div class="langbar"><div class="tabs" role="group" id="langs"></div></div>
+    <div class="head">
+      <p class="as-micro" id="eyebrow"></p>
+      <h1>Polaarts Skills</h1>
+      <p class="d" id="intro"></p>
+      <p class="as-micro c" id="count" aria-live="polite"></p>
+    </div>
+    <div class="tools">
+      <div class="search" role="search">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <label class="sr-only" for="q" id="q-label"></label>
+        <input id="q" type="search" autocomplete="off">
+      </div>
+      <div class="sort">
+        <label class="sr-only" for="sort" id="sort-label"></label>
+        <select id="sort"></select>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </div>
+    <div class="grid" id="grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  </div></div>
+</main>
+<footer><div class="as-wrap"><span class="logo"><span class="mark">ps</span><span class="word">Polaarts Skills</span></span><p id="foot"></p></div></footer>
 
 <script>
 "use strict";
-const OWNER = "polaarts", REPO = "talk-to-article";
+const OWNER = "polaarts", REPO = "skills";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
+const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/`;
 
-// Snapshot from the GitHub API (2026-11-12); replaced by live data when the API answers.
-const repo = {
-  stars: 0, forks: 0, license: "MIT", language: "Python", branch: "main",
-  pushed: "2026-11-12T20:19:41Z", contributors: [{ login: "polaarts", avatar: "" }],
-  sha: "b03347f", commitMsg: "Initial release: talk-to-article skill v0.1.0", topics: [], live: false,
-};
-let skillMd = null, skillErr = false;
+// Snapshot used when the GitHub API is unavailable or rate limited; live data replaces it.
+let skills = [{ dir: "talk-to-article", updated: "2026-11-12T20:55:15Z", fm: {
+  name: "talk-to-article", license: "MIT", description: "",
+  metadata: { version: "0.1.0", category: "Content & Docs", "category-es": "Contenido y documentación",
+    "category-pt": "Conteúdo e documentação", platforms: "Claude Code, Agent-neutral",
+    summary: "Turns a recorded talk into a technical blog-style article with screenshots, as one HTML page per talk.",
+    "summary-es": "Convierte una charla grabada en un artículo técnico de estilo blog con capturas, en una página HTML por charla.",
+    "summary-pt": "Transforma uma palestra gravada em um artigo técnico no estilo de blog com capturas, em uma página HTML por palestra." } } }];
+let stars = 0, loaded = false;
 
-// ---------- i18n ----------
-const STEP_FILES = ["fetch.py", "transcript.py", "frames.py", "grab.py", "clip.py", "ocr.py", "check.py", "build.py"];
 const T = {
-  en: {
-    title: "talk-to-article — Agent Skill",
-    desc: "Turn a recorded talk into a technical blog-style article with screenshots. An agent skill for Claude Code.",
-    langLabel: "Language", by: "by", category: "Content & Docs",
-    lead: "An agent skill that turns a recorded talk (a conference session, webinar, keynote or tutorial) into a technical blog-style article. It places a screenshot of whatever the speaker is showing next to the part of the text that explains it, and writes the result as one HTML page in its own folder.",
-    chips: ["Claude Code", "Agent-neutral", "Python 3.9+", "ES · EN · PT"],
-    stars: "stars", updated: "Updated", contributor: n => n === 1 ? "contributor" : "contributors",
-    install: "Install This Skill", tabs: { personal: "Personal", project: "Project", deps: "Dependencies" },
-    cmt: { personal: "# personal skill (all projects)", project: "# project skill (this repo only)", deps: "# check yt-dlp + ffmpeg, then install what's missing" },
-    ask: "<b>Then just ask:</b> “Turn this talk into an article: https://youtu.be/…” or run <code>/talk-to-article &lt;url&gt;</code>.",
-    readme: "Read the full README", viewSkill: "View SKILL.md",
-    whenT: "When to use this skill", when: [
-      "Documenting a conference talk, webinar, keynote or tutorial for your team",
-      "Turning a YouTube, Vimeo or local <code>.mp4</code> video into notes with the slides the speaker showed",
-      "Writing the article in Spanish, English or Portuguese, whatever language the talk is in",
-      "Processing a whole playlist or a list of URLs in one batch"],
-    notT: "When not to use", not: [
-      "Videos you aren't allowed to download: on a block, private video or bot check the skill stops instead of working around it",
-      "Republishing a full transcript or video: external mode condenses the content and caps clips at 15 s",
-      "Output in other destinations (Notion, Docs, PDF): the result is always an HTML folder"],
-    whatT: "What you get", light: "light theme", dark: "dark theme", shotAlt: x => `Generated article page, ${x}`,
-    folder: "One folder per talk, named after the talk and its video id:",
-    tree: ["the article", "screenshots, named by timestamp (0345.jpg = 03:45)", "optional GIFs / .mp4 clips", "the Markdown source the page is built from", "the talk's transcript, grouped by chapter", "options and metadata"],
-    includesT: "The page includes", includes: [
-      "A fixed sidebar with the talk's title, a search box that looks through headings and section text, and a table of contents that highlights the section you're reading. Press ⌘K on macOS or Ctrl+K on Windows and Linux to jump to the search box.",
-      "A light/dark theme toggle. It starts from the OS setting and remembers your choice.",
-      "Under every screenshot, a caption with the timestamp, which links to that second of the video.",
-      "Optionally, a table of the tools, commands and links the talk mentions, plus short GIFs or clips of live demos.",
-      "A layout that reads well on phones. No external requests: fonts, styles and scripts are inline."],
-    modesT: "Formats",
-    share: "The page loads its images from the folder, so share the whole folder (for example as a zip), not <code>index.html</code> on its own.",
-    modes: "It can be a <b>full article</b> or an <b>executive summary</b>, written for <b>internal</b> use or <b>external publication</b>. External publication follows stricter rules; see <a href=\"#req-h\">Responsible use</a>.",
-    howT: "How it works", how: "The deterministic steps are scripts (standard library only); the outline, screenshot choice, writing and fidelity review are left to the agent.",
-    step: "Step", steps: [
-      ["Download", "Metadata, chapters, subtitles and the video (≤ 720p)"],
-      ["Transcript", "Subtitles (or Whisper) → transcript.md by chapter"],
-      ["Frames", "Scene detection and periodic samples → contact sheets"],
-      ["Screenshots", "Frames at chosen times, with optional crop (picture-in-picture layouts)"],
-      ["Clips", "GIFs or .mp4 clips of short moments"],
-      ["OCR", "Native OCR fallback for slide text"],
-      ["Validate", "Missing files, captions without timestamps, empty sections, placeholders, external-use rules"],
-      ["Build", "article.md → index.html; --clean removes working files"]],
-    skillNote: "Synced from GitHub in its original language (English).", onGh: "View on GitHub",
-    synced: "Synced from", fetched: "fetched", loadErr: "Could not load SKILL.md from GitHub.", openGh: "Open it on GitHub",
-    reqT: "Requirements & responsible use", req: "Requirements", reqs: [
-      "Python 3.9+. The scripts only use the standard library.",
-      "<a href=\"https://github.com/yt-dlp/yt-dlp\" target=\"_blank\" rel=\"noopener\">yt-dlp</a> and <a href=\"https://ffmpeg.org/\" target=\"_blank\" rel=\"noopener\">ffmpeg</a>",
-      "An agent that can run shell commands and view images. The skill is written for Claude Code but stays agent-neutral.",
-      "Optional: Whisper, only for videos without subtitles. To read on-screen text without the agent's vision: the OS's built-in OCR (macOS Vision, Windows.Media.Ocr) or Tesseract on Linux."],
-    legal: "Responsible use", legals: [
-      "Respect the terms of service of the platform you download from and the rights of speakers and organizers. Only process videos you are allowed to use.",
-      "The skill does not bypass access controls: if a platform blocks a download, it stops.",
-      "<b>Internal use</b> (notes for you or your team) is the default.",
-      "<b>External publication</b> turns on stricter rules: an attribution block first, condensed content, fewer screenshots, clips of 15 s or less, and no copy of the full transcript or video.",
-      "Asking the speaker for permission, or tagging them when you publish, is good practice."],
-    notLegal: "This is not legal advice.",
-    faqT: "Frequently asked questions", faq: [
-      ["Which agents does it work with?", "It is written for Claude Code but stays agent-neutral. The agent needs to run shell commands and view images. With a structured-question tool (like AskUserQuestion) it asks the menu there; otherwise it prints a numbered menu."],
-      ["What if the video has no subtitles?", "<code>transcript.py --whisper</code> transcribes the audio with Whisper. It's heavy (PyTorch and models), so the skill installs it only when a video truly has no subtitles and tells you first."],
-      ["How do I share the article?", "Share the whole folder (for example as a zip), not <code>index.html</code> alone: images and clips load from the folder. The page makes no external requests."],
-      ["Can it process a playlist?", "Yes. <code>fetch.py</code> expands a playlist into one URL per line, you confirm the list, and each talk becomes its own folder. With subagents, 3–4 videos run in parallel."],
-      ["Is it safe to publish the result?", "Internal use is the default. External publication turns on stricter rules checked by <code>check.py</code>: an attribution block first, condensed content, fewer screenshots and clips of 15 s or less. This is not legal advice."]],
-    stats: "Quick Stats", live: "Live · GitHub API", snap: "Snapshot", starsL: "Stars", forks: "Forks", commit: "Last commit",
-    contributors: "Contributors", license: "License", language: "Language", source: "Source",
-    author: "Author", tagsT: "Tags", report: "Report an issue", copied: "Copied", copyFail: "Copy failed — select the text", copyAria: "Copy command",
-    footer: "An agent skill that turns recorded talks into technical articles with screenshots, one HTML page per talk.",
-  },
-  es: {
-    title: "talk-to-article — Skill para agentes",
-    desc: "Convierte una charla grabada en un artículo técnico de estilo blog con capturas. Una skill para Claude Code.",
-    langLabel: "Idioma", by: "por", category: "Contenido y documentación",
-    lead: "Una skill para agentes que convierte una charla grabada (una sesión de conferencia, un webinar, una keynote o un tutorial) en un artículo técnico de estilo blog. Coloca una captura de lo que el ponente está mostrando junto a la parte del texto que lo explica, y entrega el resultado como una página HTML en su propia carpeta.",
-    chips: ["Claude Code", "Cualquier agente", "Python 3.9+", "ES · EN · PT"],
-    stars: "estrellas", updated: "Actualizado", contributor: n => n === 1 ? "colaborador" : "colaboradores",
-    install: "Instala esta skill", tabs: { personal: "Personal", project: "Proyecto", deps: "Dependencias" },
-    cmt: { personal: "# skill personal (todos los proyectos)", project: "# skill de proyecto (solo este repo)", deps: "# comprueba yt-dlp + ffmpeg y luego instala lo que falte" },
-    ask: "<b>Después, solo pídelo:</b> «Convierte esta charla en un artículo: https://youtu.be/…» o ejecuta <code>/talk-to-article &lt;url&gt;</code>.",
-    readme: "Leer el README completo", viewSkill: "Ver SKILL.md",
-    whenT: "Cuándo usar esta skill", when: [
-      "Documentar una charla de conferencia, un webinar, una keynote o un tutorial para tu equipo",
-      "Convertir un vídeo de YouTube, Vimeo o un <code>.mp4</code> local en notas con las diapositivas que mostró el ponente",
-      "Escribir el artículo en español, inglés o portugués, sea cual sea el idioma de la charla",
-      "Procesar una playlist completa o una lista de URLs en un solo lote"],
-    notT: "Cuándo no usarla", not: [
-      "Vídeos que no tienes permiso para descargar: ante un bloqueo, un vídeo privado o una comprobación anti-bots, la skill se detiene en lugar de intentar saltárselo",
-      "Republicar una transcripción o un vídeo completos: el modo externo condensa el contenido y limita los clips a 15 s",
-      "Obtener el resultado en otros destinos (Notion, Docs, PDF): el resultado es siempre una carpeta HTML"],
-    whatT: "Qué obtienes", light: "tema claro", dark: "tema oscuro", shotAlt: x => `Página de artículo generada, ${x}`,
-    folder: "Una carpeta por charla, con el nombre de la charla y el id del vídeo:",
-    tree: ["el artículo", "capturas, nombradas por marca de tiempo (0345.jpg = 03:45)", "GIFs o clips .mp4 opcionales", "el Markdown del que se genera la página", "la transcripción, agrupada por capítulo", "opciones y metadatos"],
-    includesT: "La página incluye", includes: [
-      "Una barra lateral fija con el título de la charla, un buscador que recorre los títulos y el texto de cada sección, y un índice que resalta la sección que estás leyendo. Pulsa ⌘K en macOS o Ctrl+K en Windows y Linux para ir al buscador.",
-      "Un selector de tema claro/oscuro. Arranca con el ajuste del sistema y recuerda tu elección.",
-      "Bajo cada captura, un pie con la marca de tiempo, que enlaza a ese segundo del vídeo.",
-      "Opcionalmente, una tabla con las herramientas, comandos y enlaces que menciona la charla, y GIFs o clips cortos de las demos en vivo.",
-      "Un diseño que se lee bien en el móvil. Sin peticiones externas: fuentes, estilos y scripts van incrustados."],
-    modesT: "Formatos",
-    share: "La página carga sus imágenes desde la carpeta, así que comparte la carpeta entera (por ejemplo, en un zip), no solo <code>index.html</code>.",
-    modes: "Puede ser un <b>artículo completo</b> o un <b>resumen ejecutivo</b>, para uso <b>interno</b> o <b>publicación externa</b>. La publicación externa sigue reglas más estrictas; consulta <a href=\"#req-h\">Uso responsable</a>.",
-    howT: "Cómo funciona", how: "Los pasos deterministas son scripts (solo biblioteca estándar); el esquema, la elección de capturas, la redacción y la revisión de fidelidad quedan en manos del agente.",
-    step: "Paso", steps: [
-      ["Descarga", "Metadatos, capítulos, subtítulos y el vídeo (≤ 720p)"],
-      ["Transcripción", "Subtítulos (o Whisper) → transcript.md por capítulo"],
-      ["Fotogramas", "Detección de escenas y muestras periódicas → hojas de contactos"],
-      ["Capturas", "Fotogramas en los instantes elegidos, con recorte opcional (layouts picture-in-picture)"],
-      ["Clips", "GIFs o clips .mp4 de momentos cortos"],
-      ["OCR", "OCR nativo como alternativa para el texto de las diapositivas"],
-      ["Validación", "Archivos que faltan, pies sin marca de tiempo, secciones vacías, marcadores pendientes, reglas de uso externo"],
-      ["Generación", "article.md → index.html; --clean borra los archivos de trabajo"]],
-    skillNote: "Sincronizado desde GitHub en su idioma original (inglés).", onGh: "Ver en GitHub",
-    synced: "Sincronizado desde", fetched: "obtenido el", loadErr: "No se pudo cargar SKILL.md desde GitHub.", openGh: "Ábrelo en GitHub",
-    reqT: "Requisitos y uso responsable", req: "Requisitos", reqs: [
-      "Python 3.9+. Los scripts solo usan la biblioteca estándar.",
-      "<a href=\"https://github.com/yt-dlp/yt-dlp\" target=\"_blank\" rel=\"noopener\">yt-dlp</a> y <a href=\"https://ffmpeg.org/\" target=\"_blank\" rel=\"noopener\">ffmpeg</a>",
-      "Un agente que pueda ejecutar comandos de shell y ver imágenes. La skill está escrita para Claude Code, pero no depende de ningún agente concreto.",
-      "Opcional: Whisper, solo para vídeos sin subtítulos. Para leer el texto en pantalla sin la visión del agente: el OCR del sistema (macOS Vision, Windows.Media.Ocr) o Tesseract en Linux."],
-    legal: "Uso responsable", legals: [
-      "Respeta los términos de servicio de la plataforma de la que descargas y los derechos de ponentes y organizadores. Procesa solo vídeos que tengas permiso para usar.",
-      "La skill no se salta controles de acceso: si una plataforma bloquea una descarga, se detiene.",
-      "El <b>uso interno</b> (notas para ti o tu equipo) es el predeterminado.",
-      "La <b>publicación externa</b> activa reglas más estrictas: un bloque de atribución al inicio, contenido condensado, menos capturas, clips de 15 s o menos y ninguna copia de la transcripción o el vídeo completos.",
-      "Pedir permiso al ponente, o mencionarlo al publicar, es una buena práctica."],
-    notLegal: "Esto no es asesoramiento legal.",
-    faqT: "Preguntas frecuentes", faq: [
-      ["¿Con qué agentes funciona?", "Está escrita para Claude Code, pero no depende de ningún agente concreto. El agente necesita ejecutar comandos de shell y ver imágenes. Si tiene una herramienta de preguntas estructuradas (como AskUserQuestion), hace el menú con ella; si no, muestra un menú numerado."],
-      ["¿Y si el vídeo no tiene subtítulos?", "<code>transcript.py --whisper</code> transcribe el audio con Whisper. Es pesado (PyTorch y modelos), así que la skill solo lo instala cuando un vídeo de verdad no tiene subtítulos, y te avisa antes."],
-      ["¿Cómo comparto el artículo?", "Comparte la carpeta entera (por ejemplo, en un zip), no solo <code>index.html</code>: las imágenes y los clips se cargan desde la carpeta. La página no hace peticiones externas."],
-      ["¿Puede procesar una playlist?", "Sí. <code>fetch.py</code> convierte la playlist en una URL por línea, confirmas la lista y cada charla acaba en su propia carpeta. Con subagentes, se procesan 3–4 vídeos en paralelo."],
-      ["¿Es seguro publicar el resultado?", "El uso interno es el predeterminado. La publicación externa activa reglas más estrictas que comprueba <code>check.py</code>: un bloque de atribución al inicio, contenido condensado, menos capturas y clips de 15 s o menos. Esto no es asesoramiento legal."]],
-    stats: "Datos rápidos", live: "En vivo · API de GitHub", snap: "Instantánea", starsL: "Estrellas", forks: "Forks", commit: "Último commit",
-    contributors: "Colaboradores", license: "Licencia", language: "Lenguaje", source: "Código",
-    author: "Autor", tagsT: "Etiquetas", report: "Reportar un problema", copied: "Copiado", copyFail: "No se pudo copiar: selecciona el texto", copyAria: "Copiar comando",
-    footer: "Una skill para agentes que convierte charlas grabadas en artículos técnicos con capturas, una página HTML por charla.",
-  },
-  pt: {
-    title: "talk-to-article — Skill para agentes",
-    desc: "Transforme uma palestra gravada em um artigo técnico no estilo de blog, com capturas. Uma skill para o Claude Code.",
-    langLabel: "Idioma", by: "por", category: "Conteúdo e documentação",
-    lead: "Uma skill para agentes que transforma uma palestra gravada (uma sessão de conferência, um webinar, uma keynote ou um tutorial) em um artigo técnico no estilo de blog. Ela coloca uma captura de tela do que o palestrante está mostrando ao lado do trecho do texto que o explica, e entrega o resultado como uma página HTML em sua própria pasta.",
-    chips: ["Claude Code", "Qualquer agente", "Python 3.9+", "ES · EN · PT"],
-    stars: "estrelas", updated: "Atualizado", contributor: n => n === 1 ? "colaborador" : "colaboradores",
-    install: "Instale esta skill", tabs: { personal: "Pessoal", project: "Projeto", deps: "Dependências" },
-    cmt: { personal: "# skill pessoal (todos os projetos)", project: "# skill de projeto (só este repositório)", deps: "# verifica yt-dlp + ffmpeg e depois instala o que faltar" },
-    ask: "<b>Depois, é só pedir:</b> “Transforme esta palestra em um artigo: https://youtu.be/…” ou execute <code>/talk-to-article &lt;url&gt;</code>.",
-    readme: "Ler o README completo", viewSkill: "Ver SKILL.md",
-    whenT: "Quando usar esta skill", when: [
-      "Documentar uma palestra de conferência, um webinar, uma keynote ou um tutorial para o seu time",
-      "Transformar um vídeo do YouTube, do Vimeo ou um <code>.mp4</code> local em notas com os slides que o palestrante mostrou",
-      "Escrever o artigo em português, inglês ou espanhol, seja qual for o idioma da palestra",
-      "Processar uma playlist inteira ou uma lista de URLs em lote"],
-    notT: "Quando não usar", not: [
-      "Vídeos que você não tem permissão para baixar: diante de um bloqueio, um vídeo privado ou uma verificação anti-bot, a skill para em vez de tentar contorná-lo",
-      "Republicar uma transcrição ou um vídeo completos: o modo externo condensa o conteúdo e limita os clipes a 15 s",
-      "Gerar o resultado em outros destinos (Notion, Docs, PDF): o resultado é sempre uma pasta HTML"],
-    whatT: "O que você recebe", light: "tema claro", dark: "tema escuro", shotAlt: x => `Página de artigo gerada, ${x}`,
-    folder: "Uma pasta por palestra, com o nome da palestra e o id do vídeo:",
-    tree: ["o artigo", "capturas, nomeadas pelo timestamp (0345.jpg = 03:45)", "GIFs ou clipes .mp4 opcionais", "o Markdown a partir do qual a página é gerada", "a transcrição, agrupada por capítulo", "opções e metadados"],
-    includesT: "A página inclui", includes: [
-      "Uma barra lateral fixa com o título da palestra, uma busca que percorre os títulos e o texto de cada seção, e um sumário que destaca a seção que você está lendo. Pressione ⌘K no macOS ou Ctrl+K no Windows e no Linux para ir à busca.",
-      "Um seletor de tema claro/escuro. Ele começa pela configuração do sistema e lembra a sua escolha.",
-      "Abaixo de cada captura, uma legenda com o timestamp, que leva àquele segundo do vídeo.",
-      "Opcionalmente, uma tabela com as ferramentas, comandos e links citados na palestra, além de GIFs ou clipes curtos das demos ao vivo.",
-      "Um layout que funciona bem no celular. Sem requisições externas: fontes, estilos e scripts ficam embutidos."],
-    modesT: "Formatos",
-    share: "A página carrega as imagens a partir da pasta, então compartilhe a pasta inteira (por exemplo, em um zip), não só o <code>index.html</code>.",
-    modes: "Pode ser um <b>artigo completo</b> ou um <b>resumo executivo</b>, para uso <b>interno</b> ou <b>publicação externa</b>. A publicação externa segue regras mais rígidas; veja <a href=\"#req-h\">Uso responsável</a>.",
-    howT: "Como funciona", how: "As etapas determinísticas são scripts (apenas biblioteca padrão); o roteiro, a escolha das capturas, a redação e a revisão de fidelidade ficam com o agente.",
-    step: "Etapa", steps: [
-      ["Download", "Metadados, capítulos, legendas e o vídeo (≤ 720p)"],
-      ["Transcrição", "Legendas (ou Whisper) → transcript.md por capítulo"],
-      ["Quadros", "Detecção de cenas e amostras periódicas → folhas de contato"],
-      ["Capturas", "Quadros nos instantes escolhidos, com recorte opcional (layouts picture-in-picture)"],
-      ["Clipes", "GIFs ou clipes .mp4 de momentos curtos"],
-      ["OCR", "OCR nativo como alternativa para o texto dos slides"],
-      ["Validação", "Arquivos ausentes, legendas sem timestamp, seções vazias, placeholders, regras de uso externo"],
-      ["Build", "article.md → index.html; --clean remove os arquivos de trabalho"]],
-    skillNote: "Sincronizado do GitHub no idioma original (inglês).", onGh: "Ver no GitHub",
-    synced: "Sincronizado de", fetched: "obtido em", loadErr: "Não foi possível carregar o SKILL.md do GitHub.", openGh: "Abra no GitHub",
-    reqT: "Requisitos e uso responsável", req: "Requisitos", reqs: [
-      "Python 3.9+. Os scripts usam apenas a biblioteca padrão.",
-      "<a href=\"https://github.com/yt-dlp/yt-dlp\" target=\"_blank\" rel=\"noopener\">yt-dlp</a> e <a href=\"https://ffmpeg.org/\" target=\"_blank\" rel=\"noopener\">ffmpeg</a>",
-      "Um agente que consiga executar comandos de shell e ver imagens. A skill foi escrita para o Claude Code, mas não depende de um agente específico.",
-      "Opcional: Whisper, só para vídeos sem legendas. Para ler o texto na tela sem a visão do agente: o OCR do sistema (macOS Vision, Windows.Media.Ocr) ou o Tesseract no Linux."],
-    legal: "Uso responsável", legals: [
-      "Respeite os termos de serviço da plataforma de onde você baixa e os direitos de palestrantes e organizadores. Processe apenas vídeos que você tem permissão para usar.",
-      "A skill não contorna controles de acesso: se uma plataforma bloqueia um download, ela para.",
-      "O <b>uso interno</b> (notas para você ou seu time) é o padrão.",
-      "A <b>publicação externa</b> ativa regras mais rígidas: um bloco de atribuição no início, conteúdo condensado, menos capturas, clipes de 15 s ou menos e nenhuma cópia da transcrição ou do vídeo completos.",
-      "Pedir permissão ao palestrante, ou marcá-lo ao publicar, é uma boa prática."],
-    notLegal: "Isto não é aconselhamento jurídico.",
-    faqT: "Perguntas frequentes", faq: [
-      ["Com quais agentes ela funciona?", "Foi escrita para o Claude Code, mas não depende de um agente específico. O agente precisa executar comandos de shell e ver imagens. Se tiver uma ferramenta de perguntas estruturadas (como AskUserQuestion), faz o menu com ela; caso contrário, mostra um menu numerado."],
-      ["E se o vídeo não tiver legendas?", "<code>transcript.py --whisper</code> transcreve o áudio com o Whisper. Ele é pesado (PyTorch e modelos), então a skill só o instala quando um vídeo realmente não tem legendas, e avisa você antes."],
-      ["Como compartilho o artigo?", "Compartilhe a pasta inteira (por exemplo, em um zip), não só o <code>index.html</code>: as imagens e os clipes são carregados a partir da pasta. A página não faz requisições externas."],
-      ["Dá para processar uma playlist?", "Sim. O <code>fetch.py</code> transforma a playlist em uma URL por linha, você confirma a lista e cada palestra vira sua própria pasta. Com subagentes, 3–4 vídeos rodam em paralelo."],
-      ["É seguro publicar o resultado?", "O uso interno é o padrão. A publicação externa ativa regras mais rígidas, verificadas pelo <code>check.py</code>: um bloco de atribuição no início, conteúdo condensado, menos capturas e clipes de 15 s ou menos. Isto não é aconselhamento jurídico."]],
-    stats: "Dados rápidos", live: "Ao vivo · API do GitHub", snap: "Snapshot", starsL: "Estrelas", forks: "Forks", commit: "Último commit",
-    contributors: "Colaboradores", license: "Licença", language: "Linguagem", source: "Código-fonte",
-    author: "Autor", tagsT: "Tags", report: "Reportar um problema", copied: "Copiado", copyFail: "Não foi possível copiar: selecione o texto", copyAria: "Copiar comando",
-    footer: "Uma skill para agentes que transforma palestras gravadas em artigos técnicos com capturas, uma página HTML por palestra.",
-  },
+  en: { eyebrow: "Collection", intro: "Agent skills by polaarts: self-contained folders with their own scripts, references and tests, ready to install in Claude Code and other agents.",
+    count: n => `${n} skill${n === 1 ? "" : "s"}`, search: "Search skills...", searchLabel: "Search skills",
+    sortLabel: "Sort by", sorts: { newest: "Newest", az: "A-Z" }, by: "by", open: "Open", openSource: "Open Source",
+    starsT: "GitHub stars of the repository", updatedT: "Last change", none: q => `No skills match “${q}”.`, clear: "Clear search",
+    langLabel: "Language", foot: "Agent skills by polaarts: self-contained, tested and ready to install in Claude Code and other agents." },
+  es: { eyebrow: "Colección", intro: "Skills para agentes de polaarts: carpetas autocontenidas con sus propios scripts, referencias y tests, listas para instalar en Claude Code y otros agentes.",
+    count: n => `${n} skill${n === 1 ? "" : "s"}`, search: "Buscar skills...", searchLabel: "Buscar skills",
+    sortLabel: "Ordenar por", sorts: { newest: "Más recientes", az: "A-Z" }, by: "por", open: "Abrir", openSource: "Código abierto",
+    starsT: "Estrellas del repositorio en GitHub", updatedT: "Último cambio", none: q => `Ninguna skill coincide con «${q}».`, clear: "Borrar búsqueda",
+    langLabel: "Idioma", foot: "Skills para agentes de polaarts: autocontenidas, probadas y listas para instalar en Claude Code y otros agentes." },
+  pt: { eyebrow: "Coleção", intro: "Skills para agentes da polaarts: pastas autocontidas com seus próprios scripts, referências e testes, prontas para instalar no Claude Code e em outros agentes.",
+    count: n => `${n} skill${n === 1 ? "" : "s"}`, search: "Buscar skills...", searchLabel: "Buscar skills",
+    sortLabel: "Ordenar por", sorts: { newest: "Mais recentes", az: "A-Z" }, by: "por", open: "Abrir", openSource: "Código aberto",
+    starsT: "Estrelas do repositório no GitHub", updatedT: "Última alteração", none: q => `Nenhuma skill corresponde a “${q}”.`, clear: "Limpar busca",
+    langLabel: "Idioma", foot: "Skills para agentes da polaarts: autocontidas, testadas e prontas para instalar no Claude Code e em outros agentes." },
 };
-const LANGS = { en: "EN", es: "ES", pt: "PT" };
-const LOCALE = { en: "en-US", es: "es-ES", pt: "pt-BR" };
+const LANGS = { en: "EN", es: "ES", pt: "PT" }, LOCALE = { en: "en-US", es: "es-ES", pt: "pt-BR" };
 function initialLang() {
-  try { const saved = localStorage.getItem("tta-lang"); if (T[saved]) return saved; } catch {}
+  try { const s = localStorage.getItem("ps-lang"); if (T[s]) return s; } catch {}
   for (const l of navigator.languages || [navigator.language || "en"]) { const k = l.slice(0, 2).toLowerCase(); if (T[k]) return k; }
   return "en";
 }
-let lang = initialLang();
-let t = T[lang];
+let lang = initialLang(), t = T[lang];
 
 const I = {
-  star:'<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
-  fork:'<circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/>',
-  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  cal:'<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
-  scale:'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
-  gh:'<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>',
-  copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
-  check:'<path d="M20 6 9 17l-5-5"/>',
-  chevD:'<path d="m6 9 6 6 6-6"/>',
-  out:'<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',
-  commit:'<circle cx="12" cy="12" r="3"/><line x1="3" x2="9" y1="12" y2="12"/><line x1="15" x2="21" y1="12" y2="12"/>',
-  code:'<path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/>',
-  alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  star: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+  cal: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  arrow: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
 };
-const ic = (n, s) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"${s ? ` style="width:${s}px;height:${s}px"` : ""}>${I[n]}</svg>`;
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-const loc = () => LOCALE[lang];
-const fmtNum = n => new Intl.NumberFormat(loc(), { notation: "compact" }).format(n);
-const isoDay = d => new Date(d).toISOString().slice(0, 10);
-function ago(d) {
-  const days = Math.round((new Date(d) - Date.now()) / 864e5), rtf = new Intl.RelativeTimeFormat(loc(), { numeric: "auto" });
-  if (Math.abs(days) < 30) return rtf.format(days, "day");
-  if (Math.abs(days) < 365) return rtf.format(Math.round(days / 30), "month");
-  return rtf.format(Math.round(days / 365), "year");
-}
+const ic = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const store = {
   get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
-const rawUrl = p => `https://raw.githubusercontent.com/${OWNER}/${REPO}/${repo.branch}/${p}`;
-const blobUrl = p => `${REPO_URL}/blob/${repo.branch}/${p}`;
-const slug = s => s.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
 
-// GitHub API, cached per tab to stay under the 60 req/h anonymous limit.
+// GitHub API and raw files, cached per tab to stay under the 60 req/h anonymous limit.
 async function api(path) {
-  const key = "gh:" + path, hit = store.get(key);
-  if (hit) return hit;
+  const key = "gh:" + REPO + path, hit = store.get(key); if (hit) return hit;
   const r = await fetch(API + path, { headers: { Accept: "application/vnd.github+json" } });
   if (!r.ok) throw new Error(`GitHub ${r.status}`);
   const j = await r.json(); store.set(key, j); return j;
 }
-// Raw file from GitHub; falls back to the local checkout when served from the repo root.
 async function raw(path) {
-  const cached = store.get("raw:" + path); if (cached != null) return cached;
-  for (const url of [rawUrl(path), `../${path}`]) {
-    try { const r = await fetch(url); if (r.ok) { const txt = await r.text(); store.set("raw:" + path, txt); return txt; } } catch {}
+  const key = "raw:" + REPO + path, hit = store.get(key); if (hit != null) return hit;
+  for (const url of [RAW + path, `../${path}`]) { // second URL: local checkout served from the repo root
+    try { const r = await fetch(url); if (r.ok) { const txt = await r.text(); store.set(key, txt); return txt; } } catch {}
   }
   throw new Error(`Could not load ${path}`);
 }
 
-async function loadRepo() {
-  const [info, contrib, commits] = await Promise.allSettled([api(""), api("/contributors?per_page=100"), api("/commits?per_page=1")]);
-  if (info.status === "fulfilled") {
-    const v = info.value; repo.live = true;
-    Object.assign(repo, { stars: v.stargazers_count, forks: v.forks_count, license: v.license?.spdx_id || repo.license,
-      language: v.language || repo.language, branch: v.default_branch, pushed: v.pushed_at, topics: v.topics || [] });
+// Minimal YAML for SKILL.md frontmatter: top-level "key: value" plus the one-level "metadata:" map.
+function frontMatter(md) {
+  const out = { metadata: {} }, m = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return out;
+  const unq = v => v.trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+  let inMeta = false;
+  for (const line of m[1].split(/\r?\n/)) {
+    const top = line.match(/^([\w-]+):\s*(.*)$/);
+    if (top) { inMeta = top[1] === "metadata" && !top[2].trim(); if (!inMeta) out[top[1]] = unq(top[2]); continue; }
+    const sub = line.match(/^\s+([\w-]+):\s*(.*)$/);
+    if (inMeta && sub) out.metadata[sub[1]] = unq(sub[2]);
   }
-  if (contrib.status === "fulfilled" && Array.isArray(contrib.value)) repo.contributors = contrib.value.map(c => ({ login: c.login, avatar: c.avatar_url }));
-  if (commits.status === "fulfilled" && commits.value[0]) { const c = commits.value[0]; repo.sha = c.sha.slice(0, 7); repo.commitMsg = c.commit.message.split("\n")[0]; repo.pushed = c.commit.committer.date; }
+  return out;
 }
 
-// SKILL.md -> sanitized HTML. Relative repo links go to GitHub, since this site has a single page.
-function renderSkill(el) {
-  el.innerHTML = DOMPurify.sanitize(marked.parse(skillMd.replace(/^---\n[\s\S]*?\n---\n/, ""), { gfm: true }));
-  el.querySelectorAll("table").forEach(tb => { const w = document.createElement("div"); w.className = "tbl"; tb.replaceWith(w); w.appendChild(tb); });
-  el.querySelectorAll("h1,h2,h3").forEach(h => { h.id = "skill-" + slug(h.textContent); });
-  el.querySelectorAll("a[href]").forEach(a => {
-    const href = a.getAttribute("href");
-    if (href.startsWith("#")) { a.setAttribute("href", "#skill-" + slug(decodeURIComponent(href.slice(1)))); return; }
-    if (!/^[a-z]+:/i.test(href)) { const p = new URL(href, "https://x/").pathname.slice(1); a.href = /\.[a-z]+$/i.test(p) ? blobUrl(p) : `${REPO_URL}/tree/${repo.branch}/${p}`; }
-    a.target = "_blank"; a.rel = "noopener";
-  });
+async function load() {
+  const [info, list] = await Promise.allSettled([api(""), api("/contents/skills")]);
+  if (info.status === "fulfilled") stars = info.value.stargazers_count;
+  if (list.status !== "fulfilled") return;
+  const dirs = list.value.filter(e => e.type === "dir").map(e => e.name);
+  const found = await Promise.all(dirs.map(async dir => {
+    try {
+      const [md, commits] = await Promise.all([raw(`skills/${dir}/SKILL.md`), api(`/commits?per_page=1&path=skills/${dir}`).catch(() => [])]);
+      return { dir, fm: frontMatter(md), updated: commits[0]?.commit.committer.date || "" };
+    } catch { return null; } // a folder without SKILL.md is not a skill
+  }));
+  skills = found.filter(Boolean);
+  // A skill gets a link to its own page when one exists (site/skills/<dir>/); otherwise to its folder on GitHub.
+  await Promise.all(skills.map(async s => {
+    try { s.page = (await fetch(`skills/${s.dir}/`, { method: "HEAD" })).ok; } catch { s.page = false; }
+  }));
 }
 
-function codeBlock(text) {
-  const html = esc(text).replace(/^(#.*)$/gm, '<span class="muted">$1</span>');
-  return `<div class="code"><pre><code>${html}</code></pre><button class="copy" data-copy="${esc(text.replace(/^#.*\n?/gm, "").trim())}" aria-label="${t.copyAria}">${ic("copy")}</button></div>`;
+function card(s) {
+  const md = s.fm.metadata, name = s.fm.name || s.dir;
+  const summary = md[`summary-${lang}`] || md.summary || s.fm.description || "";
+  const category = md[`category-${lang}`] || md.category;
+  const plats = (md.platforms || "").split(",").map(x => x.trim()).filter(Boolean);
+  const href = s.page === false ? `${REPO_URL}/tree/main/skills/${encodeURIComponent(s.dir)}` : `skills/${encodeURIComponent(s.dir)}/`;
+  const ext = s.page === false ? ' target="_blank" rel="noopener"' : "";
+  const day = s.updated ? new Date(s.updated).toLocaleDateString(LOCALE[lang], { month: "short", day: "numeric", year: "numeric" }) : "";
+  return `<a class="card" href="${href}"${ext}>
+    <div class="card-top"><div><h3>${esc(name)}</h3><p class="by">${t.by} <span>${OWNER}</span></p></div>
+      ${md.version ? `<span class="badge">v${esc(md.version)}</span>` : ""}</div>
+    <p class="s">${esc(summary)}</p>
+    <div class="tags">${category ? `<span class="tag">${esc(category)}</span>` : ""}${s.fm.license ? `<span class="tag alt">${t.openSource}</span>` : ""}</div>
+    <div class="plats">${plats.map(p => `<span class="plat">${esc(p)}</span>`).join("")}</div>
+    <div class="card-foot"><div class="m">
+        <span title="${t.starsT}">${ic("star")}${stars.toLocaleString(LOCALE[lang])}</span>
+        ${day ? `<span title="${t.updatedT}">${ic("cal")}${day}</span>` : ""}</div>
+      <span class="as-micro open">${t.open} ${ic("arrow")}</span></div></a>`;
 }
-const INSTALL = {
-  personal: `git clone ${REPO_URL} ~/.claude/skills/talk-to-article`,
-  project: `git clone ${REPO_URL} .claude/skills/talk-to-article`,
-  deps: `python3 ~/.claude/skills/talk-to-article/scripts/setup.py\npython3 ~/.claude/skills/talk-to-article/scripts/setup.py --install`,
-};
-let tab = "personal";
-const installCode = () => codeBlock(`${t.cmt[tab]}\n${INSTALL[tab]}`);
 
-function treeBlock() {
-  const files = ["index.html", "images/", "clips/", "article.md", "transcript.md", "manifest.json"];
-  const lines = files.map((f, i) => `${i === files.length - 1 ? "└──" : "├──"} ${f.padEnd(14)}# ${t.tree[i]}`);
-  return `<div class="code"><pre><code>~/talk-articles/design-will-never-be-the-same-na1OyJ3E7Kc/\n${esc(lines.join("\n"))}</code></pre></div>`;
+const q = document.getElementById("q"), sortSel = document.getElementById("sort");
+function renderGrid() {
+  const query = norm(q.value.trim());
+  const hits = skills.filter(s => !query || norm([s.fm.name, s.dir, s.fm.description, ...Object.values(s.fm.metadata)].join(" ")).includes(query))
+    .sort(sortSel.value === "az" ? (a, b) => (a.fm.name || a.dir).localeCompare(b.fm.name || b.dir) : (a, b) => (b.updated || "").localeCompare(a.updated || ""));
+  document.getElementById("count").textContent = t.count(hits.length);
+  document.getElementById("grid").innerHTML = hits.length ? hits.map(card).join("")
+    : `<div class="empty">${esc(t.none(q.value.trim()))}<br><button type="button" id="clear">${t.clear}</button></div>`;
 }
-
 function render() {
   t = T[lang];
   document.documentElement.lang = lang;
-  document.title = t.title;
-  document.querySelector('meta[name="description"]').content = t.desc;
-  const a = repo.contributors[0] || { login: OWNER };
-  const n = repo.contributors.length;
-  const tags = (repo.topics.length ? repo.topics : ["agent-skill", "claude-code", "video", "transcripts", "yt-dlp", "ffmpeg", "html"]);
-  const fetched = new Date().toLocaleDateString(loc(), { month: "short", day: "numeric", year: "numeric" });
-
-  document.getElementById("app").innerHTML = `<div class="page"><div class="as-wrap">
-    <div class="langbar"><div class="tabs" role="group" aria-label="${t.langLabel}">
-      ${Object.entries(LANGS).map(([k, v]) => `<button data-lang="${k}" lang="${k}" aria-pressed="${k === lang}">${v}</button>`).join("")}
-    </div></div>
-    <div class="layout"><div>
-      <div class="mb8">
-        <h1 class="title">talk-to-article</h1>
-        <div class="byline"><span>${t.by}</span><a href="https://github.com/${OWNER}" target="_blank" rel="noopener">${OWNER}</a><span>·</span><b>${t.category}</b></div>
-      </div>
-      <div class="mb8"><p class="lead">${t.lead}</p></div>
-      <div class="chips mb8">${t.chips.map(c => `<span class="chip">${c}</span>`).join("")}</div>
-      <div class="metrics">
-        <div class="metric">${ic("star")}<b>${fmtNum(repo.stars)}</b>${t.stars}</div>
-        <div class="metric">${ic("cal")}<b>${t.updated}</b>${ago(repo.pushed)}</div>
-        <div class="metric">${ic("users")}<b>${n}</b>${t.contributor(n)}</div>
-        <div class="metric">${ic("commit")}<b class="mono" style="font-size:12px">${esc(repo.sha)}</b><span style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(repo.commitMsg)}</span></div>
-      </div>
-
-      <section class="mb10" aria-labelledby="install-h">
-        <h2 class="sec" id="install-h">${t.install}</h2>
-        <div class="tabs" role="tablist">${Object.keys(INSTALL).map(k => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${t.tabs[k]}</button>`).join("")}</div>
-        <div id="tab-panel" role="tabpanel">${installCode()}</div>
-        <div class="note"><p style="flex:1;min-width:0">${t.ask} <a href="${blobUrl("README.md")}" target="_blank" rel="noopener">${t.readme}</a></p>
-          <a class="btn-ink" href="#skill-h">${t.viewSkill}</a></div>
-      </section>
-
-      <section class="mb10 hgrid c2">
-        <div><h2>${t.whenT}</h2><ul class="ticks">${t.when.map(x => `<li><span class="g">→</span><span>${x}</span></li>`).join("")}</ul></div>
-        <div class="alt"><h2>${t.notT}</h2><ul class="ticks">${t.not.map(x => `<li><span class="x">✕</span><span>${x}</span></li>`).join("")}</ul></div>
-      </section>
-
-      <section class="mb10" aria-labelledby="what-h">
-        <div class="sec-head"><h2 class="sec" id="what-h">${t.whatT}</h2><a href="${blobUrl("README.md")}" target="_blank" rel="noopener">README ↗</a></div>
-        <div class="shots">
-          ${["light", "dark"].map(k => `<figure><img src="${rawUrl(`docs/screenshot-${k}.png`)}" onerror="this.onerror=null;this.src='../docs/screenshot-${k}.png'" alt="${t.shotAlt(t[k])}" loading="lazy">
-            <figcaption><span class="as-micro">${t[k]}</span><span class="as-micro" style="color:var(--mute-3)">docs/screenshot-${k}.png</span></figcaption></figure>`).join("")}
-        </div>
-        <div class="card" style="border-top:0">
-          <p class="lead" style="font-size:14px;margin-bottom:12px">${t.folder}</p>
-          ${treeBlock()}
-        </div>
-        <div class="hgrid c2" style="border-top:0">
-          <div><h3 class="h">${t.includesT}</h3><ul class="ticks">${t.includes.map(x => `<li><span class="g">→</span><span>${x}</span></li>`).join("")}</ul></div>
-          <div class="alt"><h3 class="h">${t.modesT}</h3><ul class="ticks"><li><span class="g">→</span><span>${t.modes}</span></li><li><span class="g">→</span><span>${t.share}</span></li></ul></div>
-        </div>
-      </section>
-
-      <section class="mb10" aria-labelledby="how-h">
-        <div class="sec-head"><h2 class="sec" id="how-h">${t.howT}</h2><a href="${REPO_URL}/tree/${repo.branch}/scripts" target="_blank" rel="noopener">scripts/ ↗</a></div>
-        <p class="lead" style="font-size:14px;margin-bottom:16px">${t.how}</p>
-        <div class="hgrid steps">${t.steps.map(([name, d], i) => `<a href="${blobUrl("scripts/" + STEP_FILES[i])}" target="_blank" rel="noopener"><span class="n">${t.step} ${String(i + 1).padStart(2, "0")}</span><h3>${name}</h3><code>${STEP_FILES[i]}</code><p>${esc(d)}</p></a>`).join("")}</div>
-      </section>
-
-      <section class="mb10" aria-labelledby="skill-h">
-        <div class="sec-head"><h2 class="sec" id="skill-h">SKILL.md</h2><a href="${blobUrl("SKILL.md")}" target="_blank" rel="noopener">${t.onGh} ↗</a></div>
-        ${lang === "en" ? "" : `<p class="src-note">${t.skillNote}</p>`}
-        <div class="card"><div class="prose" id="skill-md" lang="en">${skillErr
-          ? `<p>${t.loadErr} <a href="${blobUrl("SKILL.md")}" target="_blank" rel="noopener">${t.openGh}</a>.</p>`
-          : `<div class="skeleton" style="width:40%"></div><div class="skeleton"></div><div class="skeleton" style="width:80%"></div>`}</div>
-          <div class="synced"><span>${t.synced} <a href="${blobUrl("SKILL.md")}" target="_blank" rel="noopener">${OWNER}/${REPO}@${esc(repo.sha)}</a></span><span>${t.fetched} ${fetched}</span></div></div>
-      </section>
-
-      <section class="mb10" aria-labelledby="req-h">
-        <h2 class="sec" id="req-h">${t.reqT}</h2>
-        <div class="hgrid c2">
-          <div><h3 class="h">${t.req}</h3><ul class="ticks">${t.reqs.map(x => `<li><span class="g">→</span><span>${x}</span></li>`).join("")}</ul></div>
-          <div class="alt"><h3 class="h">${t.legal}</h3><ul class="ticks">${t.legals.map(x => `<li><span class="g">→</span><span>${x}</span></li>`).join("")}</ul><p class="fine">${t.notLegal}</p></div>
-        </div>
-      </section>
-
-      <section class="mb10" aria-labelledby="faq-h">
-        <h2 class="sec" id="faq-h">${t.faqT}</h2>
-        <div class="faq">${t.faq.map(([q, ans]) => `<details><summary>${q}${ic("chevD")}</summary><p>${ans}</p></details>`).join("")}</div>
-      </section>
-    </div>
-
-    <div class="side">
-      <div class="box">
-        <div class="box-head"><h3 class="as-micro">${t.stats}</h3><span>${repo.live ? t.live : t.snap}</span></div>
-        <div class="rows">
-          <div class="row"><span>${ic("star", 14)}${t.starsL}</span><span class="v m">${repo.stars.toLocaleString(loc())}</span></div>
-          <div class="row"><span>${ic("fork", 14)}${t.forks}</span><span class="v m">${repo.forks.toLocaleString(loc())}</span></div>
-          <div class="row"><span>${ic("commit", 14)}${t.commit}</span><span class="v m">${isoDay(repo.pushed)}</span></div>
-          <div class="row"><span>${ic("users", 14)}${t.contributors}</span><span class="v m">${n}</span></div>
-          <div class="row"><span>${ic("scale", 14)}${t.license}</span><span class="v">${esc(repo.license)}</span></div>
-          <div class="row"><span>${ic("code", 14)}${t.language}</span><span class="v">${esc(repo.language)}</span></div>
-          <div class="row top"><span>${ic("gh", 14)}${t.source}</span><a class="v m" href="${REPO_URL}" target="_blank" rel="noopener">${OWNER}/${REPO}${ic("out", 12)}</a></div>
-        </div>
-      </div>
-      <div class="box"><h3 class="as-micro" style="margin-bottom:12px">${t.author}</h3>
-        <a class="author" href="https://github.com/${esc(a.login)}" target="_blank" rel="noopener">
-          <div class="av">${a.avatar ? `<img src="${esc(a.avatar)}&s=80" alt="">` : esc(a.login[0].toUpperCase())}</div>
-          <div><p>${esc(a.login)}</p><p>@${esc(a.login)}</p></div></a></div>
-      <div class="box"><h3 class="as-micro" style="margin-bottom:12px">${t.tagsT}</h3><div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join("")}</div></div>
-      <a class="report" href="${REPO_URL}/issues/new" target="_blank" rel="noopener">${ic("alert")}${t.report}</a>
-    </div></div>
-  </div></div>`;
-
-  if (skillMd) renderSkill(document.getElementById("skill-md"));
-  document.getElementById("footer").innerHTML = `<div class="as-wrap"><span class="logo"><span class="mark">t→a</span><span class="word">talk-to-article</span></span><p>${t.footer}</p></div>`;
+  document.getElementById("langs").setAttribute("aria-label", t.langLabel);
+  document.getElementById("langs").innerHTML = Object.entries(LANGS).map(([k, v]) => `<button type="button" data-lang="${k}" lang="${k}" aria-pressed="${k === lang}">${v}</button>`).join("");
+  document.getElementById("eyebrow").textContent = t.eyebrow;
+  document.getElementById("intro").textContent = t.intro;
+  document.getElementById("foot").textContent = t.foot;
+  q.placeholder = t.search;
+  document.getElementById("q-label").textContent = t.searchLabel;
+  document.getElementById("sort-label").textContent = t.sortLabel;
+  const cur = sortSel.value || "newest";
+  sortSel.innerHTML = Object.entries(t.sorts).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  sortSel.value = cur;
+  if (loaded) renderGrid();
 }
 
-// ---------- Interactions ----------
-let toastT;
-function toast(msg) {
-  let el = document.querySelector(".toast"); if (!el) { el = document.createElement("div"); el.className = "toast"; el.setAttribute("role", "status"); document.body.appendChild(el); }
-  el.textContent = msg; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (el.hidden = true), 1600);
-}
-document.addEventListener("click", async e => {
-  const lb = e.target.closest("[data-lang]");
-  if (lb) {
-    lang = lb.dataset.lang;
-    try { localStorage.setItem("tta-lang", lang); } catch {}
-    render(); document.querySelector(`[data-lang="${lang}"]`).focus();
-    return;
-  }
-  const tb = e.target.closest("[data-tab]");
-  if (tb) {
-    tab = tb.dataset.tab;
-    tb.parentElement.querySelectorAll("[data-tab]").forEach(b => b.setAttribute("aria-selected", b === tb));
-    document.getElementById("tab-panel").innerHTML = installCode();
-    return;
-  }
-  const cp = e.target.closest("[data-copy]");
-  if (cp) {
-    try { await navigator.clipboard.writeText(cp.dataset.copy); cp.innerHTML = ic("check"); toast(t.copied); setTimeout(() => (cp.innerHTML = ic("copy")), 1500); }
-    catch { toast(t.copyFail); }
-    return;
-  }
-  // In-page anchors scroll without touching the URL, so the site stays on "/".
-  const anchor = e.target.closest('a[href^="#"]');
-  if (anchor) { e.preventDefault(); document.getElementById(anchor.getAttribute("href").slice(1))?.scrollIntoView({ behavior: "smooth" }); }
+q.addEventListener("input", renderGrid);
+sortSel.addEventListener("change", renderGrid);
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (b) { lang = b.dataset.lang; try { localStorage.setItem("ps-lang", lang); } catch {} render(); document.querySelector(`[data-lang="${lang}"]`).focus(); }
+  if (e.target.closest("#clear")) { q.value = ""; renderGrid(); q.focus(); }
 });
+document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); q.focus(); q.select(); } });
 
-// ---------- Boot ----------
-if (location.hash) history.replaceState(null, "", location.pathname + location.search);
-render(); // first paint with the snapshot
-loadRepo().finally(render);
-raw("SKILL.md").then(md => { skillMd = md; renderSkill(document.getElementById("skill-md")); })
-  .catch(() => { skillErr = true; render(); });
+render();
+load().finally(() => { loaded = true; renderGrid(); });
 </script>
 </body>
 </html>
