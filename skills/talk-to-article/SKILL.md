@@ -1,6 +1,16 @@
 ---
 name: talk-to-article
 description: Turn a recorded talk, conference session, webinar, keynote or tutorial video (YouTube, Vimeo, conference sites, playlists or a local .mp4) into a technical blog-style article, in Spanish, English or Portuguese, with screenshots of what the speaker shows at each point, plus optional resources table, clips and GIFs. Output is always an HTML page with a fixed, scroll-highlighted table of contents, in one folder per talk (named after the talk + video id) holding the page and its assets. Use this whenever the user shares a talk or video link and wants it documented, summarized as an article, "pasado a documento", turned into notes with captures, or extracted (transcript + images) for their team — even if they don't say "article" — and for batches of talks or a whole playlist.
+license: MIT
+metadata:
+  version: "0.1.0"
+  category: Content & Docs
+  category-es: Contenido y documentación
+  category-pt: Conteúdo e documentação
+  platforms: Claude Code, Agent-neutral
+  summary: Turns a recorded talk into a technical blog-style article with screenshots, as one HTML page per talk.
+  summary-es: Convierte una charla grabada en un artículo técnico de estilo blog con capturas, en una página HTML por charla.
+  summary-pt: Transforma uma palestra gravada em um artigo técnico no estilo de blog com capturas, em uma página HTML por palestra.
 ---
 
 # talk-to-article

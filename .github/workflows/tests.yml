@@ -20,7 +20,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - name: Compile scripts
-        run: python -m compileall -q scripts
-      - name: Run tests
-        run: python -m unittest discover tests -v
+      # Every skill under skills/ is self-contained: compile its scripts and run its own tests.
+      - name: Test each skill
+        shell: bash
+        run: |
+          for d in skills/*/; do
+            echo "::group::$d"
+            if [ -d "$d/scripts" ]; then python -m compileall -q "$d/scripts"; fi
+            if [ -d "$d/tests" ]; then (cd "$d" && python -m unittest discover tests -v); fi
+            echo "::endgroup::"
+          done
