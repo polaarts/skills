@@ -10,3 +10,6 @@ talk-articles/
 *.mkv
 *.json3
 *.vtt
+
+# Cloudflare Wrangler local state
+.wrangler/

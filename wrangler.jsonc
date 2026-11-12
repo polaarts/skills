@@ -1,0 +1,13 @@
+// Cloudflare Worker that serves the catalog site (site/) as static assets.
+// Deploy: npx wrangler deploy
+{
+  "name": "polaarts-skills",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./site"
+  },
+  "routes": [
+    { "pattern": "skills.samuelangulo.com", "custom_domain": true }
+  ],
+  "workers_dev": false
+}

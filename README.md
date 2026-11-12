@@ -31,6 +31,9 @@ skills/<skill-name>/   # one folder per skill: SKILL.md, README.md, scripts/, re
 site/                  # the catalog site (site/index.html) and one page per skill (site/skills/<name>/)
 ```
 
+The site is live at <https://skills.samuelangulo.com>, served by a Cloudflare Worker
+(`wrangler.jsonc`). After changing anything under `site/`, redeploy with `npx wrangler deploy`.
+
 The catalog reads the skill list from this repository through the GitHub API, so a new folder
 under `skills/` shows up there without editing the site. Its card uses the skill's `SKILL.md`
 frontmatter: `name`, `description`, `license`, and the optional `metadata` fields `version`,
