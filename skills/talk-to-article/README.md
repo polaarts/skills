@@ -59,27 +59,29 @@ or **external publication**. External publication follows stricter rules; see
 
 ## Installation
 
-This skill lives in the [Polaarts Skills](../../README.md) collection. Install it with the
-[`skills`](https://github.com/vercel-labs/skills) CLI:
-
-```bash
-npx skills add polaarts/skills@talk-to-article
-```
-
-Or copy its folder into your skills folder by hand:
+This skill lives in the [Polaarts Skills](../../README.md) collection. Clone it once:
 
 ```bash
 git clone --depth 1 https://github.com/polaarts/skills /tmp/polaarts-skills
-
-# personal skill (all projects)
-cp -R /tmp/polaarts-skills/skills/talk-to-article ~/.claude/skills/
-
-# or project skill
-cp -R /tmp/polaarts-skills/skills/talk-to-article .claude/skills/
 ```
 
-Then check the dependencies. The second command installs whatever is missing with your OS's
-package manager (Homebrew, apt/pip or winget):
+Then copy it into your agent's skills folder:
+
+```bash
+# Claude Code
+mkdir -p ~/.claude/skills && cp -R /tmp/polaarts-skills/skills/talk-to-article ~/.claude/skills/
+# Codex
+mkdir -p ~/.agents/skills && cp -R /tmp/polaarts-skills/skills/talk-to-article ~/.agents/skills/
+# Cursor
+mkdir -p ~/.cursor/skills && cp -R /tmp/polaarts-skills/skills/talk-to-article ~/.cursor/skills/
+# Gemini CLI
+mkdir -p ~/.gemini/skills && cp -R /tmp/polaarts-skills/skills/talk-to-article ~/.gemini/skills/
+# OpenCode
+mkdir -p ~/.config/opencode/skills && cp -R /tmp/polaarts-skills/skills/talk-to-article ~/.config/opencode/skills/
+```
+
+Then check the dependencies from that folder (Claude Code shown). The second command installs
+whatever is missing with your OS's package manager (Homebrew, apt/pip or winget):
 
 ```bash
 python3 ~/.claude/skills/talk-to-article/scripts/setup.py

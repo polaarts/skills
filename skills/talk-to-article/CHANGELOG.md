@@ -40,6 +40,7 @@ All notable changes are listed here. The format follows
 
 ### Changed
 - The skill now lives in the `polaarts/skills` collection, under `skills/talk-to-article/`.
-  Install it with `npx skills add polaarts/skills@talk-to-article` or by copying the folder.
+  Install it by copying the folder into the agent's skills folder (Claude Code, Codex, Cursor,
+  Gemini CLI or OpenCode; the README lists each one).
 - `SKILL.md` frontmatter gains `license` and `metadata` (version, category, platforms and
   per-language summaries) for the catalog.

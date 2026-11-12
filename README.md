@@ -9,18 +9,24 @@ under [`skills/`](skills/) with its own `SKILL.md`, scripts, references and test
 
 ## Install a skill
 
-With the [`skills`](https://github.com/vercel-labs/skills) CLI:
+Copy the skill's folder into your agent's personal skills folder:
 
-```bash
-npx skills add polaarts/skills@<skill-name>
-```
+| Agent | Skills folder |
+|---|---|
+| Claude Code | `~/.claude/skills` |
+| Codex | `~/.agents/skills` |
+| Cursor | `~/.cursor/skills` |
+| Gemini CLI | `~/.gemini/skills` |
+| OpenCode | `~/.config/opencode/skills` |
 
-Or copy its folder into your skills folder:
+For example, for Claude Code:
 
 ```bash
 git clone --depth 1 https://github.com/polaarts/skills /tmp/polaarts-skills
-cp -R /tmp/polaarts-skills/skills/<skill-name> ~/.claude/skills/
+mkdir -p ~/.claude/skills && cp -R /tmp/polaarts-skills/skills/<skill-name> ~/.claude/skills/
 ```
+
+For another agent, use its folder from the table in both places.
 
 Each skill's README lists its requirements and usage.
 

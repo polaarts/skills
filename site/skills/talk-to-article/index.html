@@ -237,8 +237,8 @@ const T = {
     lead: "An agent skill that turns a recorded talk (a conference session, webinar, keynote or tutorial) into a technical blog-style article. It places a screenshot of whatever the speaker is showing next to the part of the text that explains it, and writes the result as one HTML page in its own folder.",
     chips: ["Claude Code", "Agent-neutral", "Python 3.9+", "ES · EN · PT"],
     stars: "stars", updated: "Updated", contributor: n => n === 1 ? "contributor" : "contributors",
-    install: "Install This Skill", tabs: { cli: "CLI", manual: "Manual", deps: "Dependencies" },
-    cmt: { cli: "# install with the skills CLI", manual: "# copy the folder into your personal skills", deps: "# check yt-dlp + ffmpeg, then install what's missing" },
+    install: "Install This Skill",
+    cmt: "# copy the folder into the agent's skills, then check yt-dlp + ffmpeg (--install adds what's missing)",
     ask: "<b>Then just ask:</b> “Turn this talk into an article: https://youtu.be/…” or run <code>/talk-to-article &lt;url&gt;</code>.",
     readme: "Read the full README", viewSkill: "View SKILL.md",
     whenT: "When to use this skill", when: [
@@ -304,8 +304,8 @@ const T = {
     lead: "Una skill para agentes que convierte una charla grabada (una sesión de conferencia, un webinar, una keynote o un tutorial) en un artículo técnico de estilo blog. Coloca una captura de lo que el ponente está mostrando junto a la parte del texto que lo explica, y entrega el resultado como una página HTML en su propia carpeta.",
     chips: ["Claude Code", "Cualquier agente", "Python 3.9+", "ES · EN · PT"],
     stars: "estrellas", updated: "Actualizado", contributor: n => n === 1 ? "colaborador" : "colaboradores",
-    install: "Instala esta skill", tabs: { cli: "CLI", manual: "Manual", deps: "Dependencias" },
-    cmt: { cli: "# instala con la CLI de skills", manual: "# copia la carpeta a tus skills personales", deps: "# comprueba yt-dlp + ffmpeg y luego instala lo que falte" },
+    install: "Instala esta skill",
+    cmt: "# copia la carpeta a las skills del agente y comprueba yt-dlp + ffmpeg (--install agrega lo que falte)",
     ask: "<b>Después, solo pídelo:</b> «Convierte esta charla en un artículo: https://youtu.be/…» o ejecuta <code>/talk-to-article &lt;url&gt;</code>.",
     readme: "Leer el README completo", viewSkill: "Ver SKILL.md",
     whenT: "Cuándo usar esta skill", when: [
@@ -371,8 +371,8 @@ const T = {
     lead: "Uma skill para agentes que transforma uma palestra gravada (uma sessão de conferência, um webinar, uma keynote ou um tutorial) em um artigo técnico no estilo de blog. Ela coloca uma captura de tela do que o palestrante está mostrando ao lado do trecho do texto que o explica, e entrega o resultado como uma página HTML em sua própria pasta.",
     chips: ["Claude Code", "Qualquer agente", "Python 3.9+", "ES · EN · PT"],
     stars: "estrelas", updated: "Atualizado", contributor: n => n === 1 ? "colaborador" : "colaboradores",
-    install: "Instale esta skill", tabs: { cli: "CLI", manual: "Manual", deps: "Dependências" },
-    cmt: { cli: "# instale com a CLI do skills", manual: "# copie a pasta para as suas skills pessoais", deps: "# verifica yt-dlp + ffmpeg e depois instala o que faltar" },
+    install: "Instale esta skill",
+    cmt: "# copie a pasta para as skills do agente e verifique yt-dlp + ffmpeg (--install adiciona o que faltar)",
     ask: "<b>Depois, é só pedir:</b> “Transforme esta palestra em um artigo: https://youtu.be/…” ou execute <code>/talk-to-article &lt;url&gt;</code>.",
     readme: "Ler o README completo", viewSkill: "Ver SKILL.md",
     whenT: "Quando usar esta skill", when: [
@@ -521,13 +521,17 @@ function codeBlock(text) {
   const html = esc(text).replace(/^(#.*)$/gm, '<span class="muted">$1</span>');
   return `<div class="code"><pre><code>${html}</code></pre><button class="copy" data-copy="${esc(text.replace(/^#.*\n?/gm, "").trim())}" aria-label="${t.copyAria}">${ic("copy")}</button></div>`;
 }
-const INSTALL = {
-  cli: `npx skills add ${OWNER}/${REPO}@talk-to-article`,
-  manual: `git clone --depth 1 ${REPO_URL} /tmp/polaarts-skills\ncp -R /tmp/polaarts-skills/${DIR} ~/.claude/skills/`,
-  deps: `python3 ~/.claude/skills/talk-to-article/scripts/setup.py\npython3 ~/.claude/skills/talk-to-article/scripts/setup.py --install`,
+// Each agent's personal (global) skills folder.
+const AGENTS = {
+  "Claude Code": "~/.claude/skills",
+  "Codex": "~/.agents/skills",
+  "Cursor": "~/.cursor/skills",
+  "Gemini CLI": "~/.gemini/skills",
+  "OpenCode": "~/.config/opencode/skills",
 };
-let tab = "cli";
-const installCode = () => codeBlock(`${t.cmt[tab]}\n${INSTALL[tab]}`);
+const installFor = dir => `git clone --depth 1 ${REPO_URL} /tmp/polaarts-skills\nmkdir -p ${dir} && cp -R /tmp/polaarts-skills/${DIR} ${dir}/\npython3 ${dir}/talk-to-article/scripts/setup.py`;
+let tab = "Claude Code";
+const installCode = () => codeBlock(`${t.cmt}\n${installFor(AGENTS[tab])}`);
 
 function treeBlock() {
   const files = ["index.html", "images/", "clips/", "article.md", "transcript.md", "manifest.json"];
@@ -565,7 +569,7 @@ function render() {
 
       <section class="mb10" aria-labelledby="install-h">
         <h2 class="sec" id="install-h">${t.install}</h2>
-        <div class="tabs" role="tablist">${Object.keys(INSTALL).map(k => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${t.tabs[k]}</button>`).join("")}</div>
+        <div class="tabs" role="tablist">${Object.keys(AGENTS).map(k => `<button role="tab" aria-selected="${k === tab}" data-tab="${k}">${k}</button>`).join("")}</div>
         <div id="tab-panel" role="tabpanel">${installCode()}</div>
         <div class="note"><p style="flex:1;min-width:0">${t.ask} <a href="${blobUrl(DIR + "/README.md")}" target="_blank" rel="noopener">${t.readme}</a></p>
           <a class="btn-ink" href="#skill-h">${t.viewSkill}</a></div>
