@@ -22,6 +22,11 @@ All notable changes are listed here. The format follows
 - Monochrome page design shared with the project site (`site/index.html`): hairline borders,
   square corners, Geist and Geist Mono embedded from `assets/fonts/` (SIL OFL 1.1).
 
+### Fixed
+- Page search now covers the intro above the first heading, shows a snippet of the matching
+  text under each result, highlights every match in the article, and jumps to the first match
+  instead of the section heading. Table cells no longer run together in the searched text.
+
 ### Changed
 - The skill now lives in the `polaarts/skills` collection, under `skills/talk-to-article/`.
   Install it with `npx skills add polaarts/skills@talk-to-article` or by copying the folder.

@@ -82,6 +82,10 @@ color:var(--mute-2);text-decoration:none;font-weight:400;transition:color .15s,b
 .toc .badge{flex:none;min-width:22px;padding:1px 6px;font:10px/1.5 var(--mono);text-align:center;color:var(--mute-2);
 background:var(--paper-3);border:1px solid var(--line)}
 .toc .empty{padding:8px 0;color:var(--mute-2);font-size:13px}
+.toc.searching .badge{display:none}
+.toc .snip{display:block;margin-top:4px;font-size:12px;line-height:1.45;font-weight:400;color:var(--mute-2);overflow-wrap:anywhere}
+.toc .snip mark{background:var(--ink);color:var(--paper);padding:0 2px}
+::highlight(tta-search){background-color:var(--ink);color:var(--paper)}
 main{width:100%;max-width:808px;margin:0 auto;padding:56px 32px 96px;min-width:0}
 h1,h2,h3{color:var(--ink);text-wrap:balance}
 h1{font-size:48px;line-height:1.05;font-weight:500;letter-spacing:-.03em;margin:0 0 .6em}
@@ -121,8 +125,9 @@ def font_faces():
                     f'src:url(data:font/woff2;base64,{data}) format("woff2")}}')
     return css
 
-# Search filters the contents by heading and section text (accent-insensitive); Cmd+K / Ctrl+K
-# focuses it. Scroll-spy marks the section being read. The theme toggle overrides the OS setting.
+# Search looks through every section's text, including the intro above the first heading
+# (accent- and case-insensitive): matching sections show a snippet, matches are highlighted in the
+# article, and a result jumps to its first match. Cmd+K / Ctrl+K focuses it. Scroll-spy marks the section being read. The theme toggle overrides the OS setting.
 JS = """
 (()=>{const root=document.documentElement,mq=matchMedia('(prefers-color-scheme: dark)');
 const btn=document.querySelector('.theme');
@@ -134,14 +139,36 @@ btn.addEventListener('click',()=>{const t=root.hasAttribute('data-dark')?'light'
 const mac=/mac|iphone|ipad/i.test(navigator.userAgentData?.platform||navigator.platform||'');
 const kbd=document.querySelector('.search kbd');kbd.textContent=mac?'\\u2318K':'Ctrl K';
 const input=document.querySelector('.search input');input.setAttribute('aria-keyshortcuts',mac?'Meta+K':'Control+K');
-const links=[...document.querySelectorAll('.toc a')],heads=links.map(a=>document.getElementById(a.hash.slice(1)));
-const norm=t=>t.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
-const texts=heads.map(h=>{let t=h.textContent,n=h.nextElementSibling;
-while(n&&!/^H[1-3]$/.test(n.tagName)){t+=' '+n.textContent;n=n.nextElementSibling}return norm(t)});
-const empty=document.querySelector('.toc .empty');
-input.addEventListener('input',()=>{const q=norm(input.value.trim());let shown=0;
-links.forEach((a,i)=>{const ok=!q||texts[i].includes(q);a.parentElement.hidden=!ok;shown+=ok});empty.hidden=shown>0});
-input.addEventListener('keydown',e=>{if(e.key==='Enter'){const a=links.find(a=>!a.parentElement.hidden);if(a){a.click();input.blur()}}
+const toc=document.querySelector('.toc'),main=document.querySelector('main'),intro=toc.querySelector('li.intro');
+const links=[...toc.querySelectorAll('li:not(.intro) a')],heads=links.map(a=>document.getElementById(a.hash.slice(1)));
+const fold=c=>c.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
+// Folded text plus a map back to original offsets: matching ignores case and accents, results still point at the real text.
+const folded=s=>{let t='';const m=[];for(let i=0;i<s.length;i++){const f=fold(s[i]);t+=f;for(let k=0;k<f.length;k++)m.push(i)}return{t,m}};
+const block=h=>{const els=[h];let n=h.nextElementSibling;while(n&&!/^H[1-3]$/.test(n.tagName)){els.push(n);n=n.nextElementSibling}return els};
+const secs=heads.map((h,i)=>({li:links[i].parentElement,a:links[i],els:block(h)}));
+const h1=main.querySelector('h1');if(h1&&intro){const els=block(h1);if(els.length>1)secs.unshift({li:intro,a:intro.firstElementChild,els})}
+secs.forEach(s=>{s.text=s.els.map(e=>e.innerText||e.textContent).join(' ').replace(/\\s+/g,' ').trim();s.f=folded(s.text)});
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function snippet(s,q){const i=s.f.t.indexOf(q),a=s.f.m[i],b=s.f.m[i+q.length-1]+1,from=Math.max(0,a-40),to=Math.min(s.text.length,b+60);
+return(from?'\\u2026':'')+esc(s.text.slice(from,a))+'<mark>'+esc(s.text.slice(a,b))+'</mark>'+esc(s.text.slice(b,to))+(to<s.text.length?'\\u2026':'')}
+// Every match in the article body, highlighted with the CSS Custom Highlight API (no DOM changes) where supported.
+const canHl=window.CSS&&CSS.highlights&&typeof Highlight==='function';
+function ranges(q){const out=[],w=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);let n;
+while((n=w.nextNode())){const f=folded(n.data);let i=f.t.indexOf(q);
+while(i>-1){const r=new Range();r.setStart(n,f.m[i]);r.setEnd(n,f.m[i+q.length-1]+1);out.push(r);i=f.t.indexOf(q,i+q.length)}}return out}
+const empty=toc.querySelector('.empty');let hits=[];
+input.addEventListener('input',()=>{const q=fold(input.value.trim()).replace(/\\s+/g,' ');let shown=0;
+toc.classList.toggle('searching',!!q);
+secs.forEach(s=>{const ok=q?s.f.t.includes(q):s.li!==intro;s.li.hidden=!ok;shown+=ok;
+s.a.querySelector('.snip')?.remove();
+if(q&&ok){const p=document.createElement('small');p.className='snip';p.innerHTML=snippet(s,q);s.a.firstElementChild.append(p)}});
+empty.hidden=shown>0;hits=q?ranges(q):[];
+if(canHl){if(hits.length)CSS.highlights.set('tta-search',new Highlight(...hits));else CSS.highlights.delete('tta-search')}});
+// While searching, a result jumps to its first match instead of the section heading.
+toc.addEventListener('click',e=>{const a=e.target.closest('a'),s=a&&secs.find(s=>s.a===a);if(!s||!hits.length)return;
+const r=hits.find(r=>s.els.some(el=>el.contains(r.startContainer)));if(!r)return;
+e.preventDefault();history.replaceState(null,'',a.hash);r.startContainer.parentElement.scrollIntoView({block:'center'})});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'){const s=secs.find(s=>!s.li.hidden);if(s){s.a.click();input.blur()}}
 if(e.key==='Escape'){input.value='';input.dispatchEvent(new Event('input'));input.blur()}});
 addEventListener('keydown',e=>{if(e.key.toLowerCase()==='k'&&(mac?e.metaKey:e.ctrlKey)){e.preventDefault();input.focus();input.select()}});
 let cur=null;function spy(){let i=0;const y=innerHeight*.3;
@@ -185,7 +212,7 @@ def inline(text):
 
 
 def render(md):
-    lines, out, toc, used, i = md.splitlines(), [], [], set(), 0
+    lines, out, toc, used, i = md.splitlines(), [], [], {"top"}, 0  # "top" is the H1's id
     while i < len(lines):
         line = lines[i]
         if line.startswith("```"):
@@ -201,7 +228,7 @@ def render(md):
         if m:
             n, text = len(m.group(1)), inline(m.group(2))
             if n == 1:
-                out.append(f"<h1>{text}</h1>")
+                out.append(f'<h1 id="top">{text}</h1>')
             else:
                 hid = anchor(text, used)
                 toc.append((n, hid, re.sub(r"<[^>]+>", "", text)))
@@ -250,7 +277,8 @@ def render(md):
 
 
 def sidebar(toc, title, subtitle, ui):
-    rows = []
+    # The intro (text above the first heading) has no contents entry; this one only shows as a search result.
+    rows = [f'<li class="l2 intro" hidden><a href="#top"><span>{html.escape(title)}</span></a></li>']
     for i, (n, hid, t) in enumerate(toc):
         kids = 0
         if n == 2:
