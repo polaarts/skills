@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polaarts Skills</title>
+<meta name="description" content="Agent skills by polaarts, ready to install in Claude Code and other agents.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from agenticskills.io (light theme, the only one it ships); same as site/skills/<name>/ */
+:root{
+  --background:#fff;--foreground:#0a0a0a;
+  --ink:#0a0a0a;--mute-1:#3d3d3d;--mute-2:#6b6b6b;--mute-3:#9a9a9a;
+  --line:#e6e6e6;--line-2:#dcdcdc;--line-3:#f0f0f0;
+  --paper:#fff;--paper-2:#fafafa;--paper-3:#f4f4f4;
+  --font-sans:"Geist","Geist Fallback",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"Geist Mono","Geist Mono Fallback",ui-monospace,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border:0 solid}
+html{-webkit-text-size-adjust:100%;line-height:1.5;font-family:var(--font-sans);-webkit-tap-highlight-color:transparent}
+body{background:var(--background);color:var(--foreground);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+::selection{background:var(--ink);color:#fff}
+h1,h2,h3{font-weight:inherit;font-size:inherit;text-wrap:balance}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+button{background:none;cursor:pointer}
+svg.i{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.as-wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+.as-micro{font-family:var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute-2);font-size:11px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+main{flex:1}
+.page{padding:40px 0 64px;background:#fff}
+.langbar{display:flex;justify-content:flex-end;margin-bottom:24px}
+.tabs{display:inline-flex;border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.tabs button{padding:6px 12px;font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--mute-2);transition:all .15s}
+.tabs button:hover{color:var(--ink);background:var(--paper-2)}
+.tabs button[aria-pressed=true]{background:var(--ink);color:#fff}
+
+/* Collection header (category header in the reference) */
+.head{margin-bottom:40px}
+.head h1{font-size:36px;line-height:1.1;font-weight:500;letter-spacing:-.03em;color:var(--ink);margin:12px 0}
+.head p.d{font-size:16px;line-height:1.5;color:var(--mute-1);max-width:42rem}
+.head p.c{margin-top:8px}
+
+/* Search + sort */
+.tools{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:32px}
+.search{position:relative;width:100%}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mute-3)}
+.search input{width:100%;padding:10px 16px 10px 40px;font-size:14px;background:#fff;border:1px solid var(--line);color:var(--ink);outline:none;border-radius:0;transition:border-color .15s}
+.search input::placeholder{color:var(--mute-3)}
+.search input:focus{border-color:var(--ink)}
+.search input::-webkit-search-cancel-button{display:none}
+.sort{position:relative}
+.sort select{appearance:none;-webkit-appearance:none;padding:8px 32px 8px 12px;font-size:12px;background:#fff;border:1px solid var(--line);color:var(--mute-1);cursor:pointer;outline:none;border-radius:0;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em}
+.sort select:focus{border-color:var(--ink)}
+.sort svg{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--mute-2);pointer-events:none}
+
+/* Cards */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.card{position:relative;display:flex;flex-direction:column;height:100%;padding:20px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transition:background .2s}
+.card:hover{background:var(--paper-2);outline:1px solid var(--ink);outline-offset:-1px;z-index:1}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.card-top>div{min-width:0;flex:1}
+.card h3{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .by{font-size:12px;color:var(--mute-2);margin-top:2px}
+.card .by span{color:var(--mute-1)}
+.badge{flex-shrink:0;font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border:1px solid var(--ink);background:#fff;color:var(--ink)}
+.card p.s{font-size:12px;color:var(--mute-1);line-height:1.625;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tag{font-size:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border:1px solid var(--line);background:#fff;color:var(--mute-1)}
+.tag.alt{background:var(--paper-3);color:var(--mute-2)}
+.plats{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;flex:1;align-content:flex-start}
+.plat{font-size:9px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mute-2);background:var(--paper-3);border:1px solid var(--line);padding:2px 6px;height:fit-content}
+.card-foot{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--line);margin-top:auto}
+.card-foot .m{display:flex;align-items:center;gap:12px}
+.card-foot .m span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mute-2)}
+.card-foot .m svg.i{width:12px;height:12px}
+.open{display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .15s}
+.open svg.i{width:12px;height:12px}
+.card:hover .open,.card:focus-visible .open{opacity:1}
+.empty{padding:48px 24px;text-align:center;font-size:14px;color:var(--mute-2);border-right:1px solid var(--line);border-bottom:1px solid var(--line);grid-column:1/-1}
+.empty button{margin-top:12px;text-decoration:underline;text-underline-offset:4px;color:var(--ink)}
+.skel{height:220px;background:var(--paper-2);border-right:1px solid var(--line);border-bottom:1px solid var(--line);animation:as-pulse 2.4s ease-in-out infinite}
+@keyframes as-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* Footer (same as the skill pages) */
+footer{border-top:1px solid var(--line);background:#fff;margin-top:auto}
+footer .as-wrap{padding-top:48px;padding-bottom:48px}
+.logo{display:inline-flex;align-items:center}
+.logo .mark{width:28px;height:28px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;font-weight:600;margin-right:8px}
+.logo .word{font-size:18px;font-weight:600;letter-spacing:-.03em;color:var(--ink)}
+footer p{font-size:12px;color:var(--mute-1);margin-top:12px;line-height:1.625;max-width:320px}
+
+@media (min-width:640px){
+  .tools{flex-direction:row;align-items:center;justify-content:space-between}
+  .search{width:320px}
+}
+@media (min-width:768px){
+  .head h1{font-size:60px;line-height:1}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:1024px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:639px){.as-wrap{padding:0 16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="page"><div class="as-wrap">
+    <div class="langbar"><div class="tabs" role="group" id="langs"></div></div>
+    <div class="head">
+      <p class="as-micro" id="eyebrow"></p>
+      <h1>Polaarts Skills</h1>
+      <p class="d" id="intro"></p>
+      <p class="as-micro c" id="count" aria-live="polite"></p>
+    </div>
+    <div class="tools">
+      <div class="search" role="search">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <label class="sr-only" for="q" id="q-label"></label>
+        <input id="q" type="search" autocomplete="off">
+      </div>
+      <div class="sort">
+        <label class="sr-only" for="sort" id="sort-label"></label>
+        <select id="sort"></select>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </div>
+    <div class="grid" id="grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  </div></div>
+</main>
+<footer><div class="as-wrap"><span class="logo"><span class="mark">ps</span><span class="word">Polaarts Skills</span></span><p id="foot"></p></div></footer>
+
+<script>
+"use strict";
+const OWNER = "polaarts", REPO = "skills";
+const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+const REPO_URL = `https://github.com/${OWNER}/${REPO}`;
+const RAW = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/`;
+
+// Snapshot used when the GitHub API is unavailable or rate limited; live data replaces it.
+let skills = [{ dir: "talk-to-article", updated: "2026-11-12T20:55:15Z", fm: {
+  name: "talk-to-article", license: "MIT", description: "",
+  metadata: { version: "0.1.0", category: "Content & Docs", "category-es": "Contenido y documentación",
+    "category-pt": "Conteúdo e documentação", platforms: "Claude Code, Agent-neutral",
+    summary: "Turns a recorded talk into a technical blog-style article with screenshots, as one HTML page per talk.",
+    "summary-es": "Convierte una charla grabada en un artículo técnico de estilo blog con capturas, en una página HTML por charla.",
+    "summary-pt": "Transforma uma palestra gravada em um artigo técnico no estilo de blog com capturas, em uma página HTML por palestra." } } }];
+let stars = 0, loaded = false;
+
+const T = {
+  en: { eyebrow: "Collection", intro: "Agent skills by polaarts: self-contained folders with their own scripts, references and tests, ready to install in Claude Code and other agents.",
+    count: n => `${n} skill${n === 1 ? "" : "s"}`, search: "Search skills...", searchLabel: "Search skills",
+    sortLabel: "Sort by", sorts: { newest: "Newest", az: "A-Z" }, by: "by", open: "Open", openSource: "Open Source",
+    starsT: "GitHub stars of the repository", updatedT: "Last change", none: q => `No skills match “${q}”.`, clear: "Clear search",
+    langLabel: "Language", foot: "Agent skills by polaarts: self-contained, tested and ready to install in Claude Code and other agents." },
+  es: { eyebrow: "Colección", intro: "Skills para agentes de polaarts: carpetas autocontenidas con sus propios scripts, referencias y tests, listas para instalar en Claude Code y otros agentes.",
+    count: n => `${n} skill${n === 1 ? "" : "s"}`, search: "Buscar skills...", searchLabel: "Buscar skills",
+    sortLabel: "Ordenar por", sorts: { newest: "Más recientes", az: "A-Z" }, by: "por", open: "Abrir", openSource: "Código abierto",
+    starsT: "Estrellas del repositorio en GitHub", updatedT: "Último cambio", none: q => `Ninguna skill coincide con «${q}».`, clear: "Borrar búsqueda",
+    langLabel: "Idioma", foot: "Skills para agentes de polaarts: autocontenidas, probadas y listas para instalar en Claude Code y otros agentes." },
+  pt: { eyebrow: "Coleção", intro: "Skills para agentes da polaarts: pastas autocontidas com seus próprios scripts, referências e testes, prontas para instalar no Claude Code e em outros agentes.",
+    count: n => `${n} skill${n === 1 ? "" : "s"}`, search: "Buscar skills...", searchLabel: "Buscar skills",
+    sortLabel: "Ordenar por", sorts: { newest: "Mais recentes", az: "A-Z" }, by: "por", open: "Abrir", openSource: "Código aberto",
+    starsT: "Estrelas do repositório no GitHub", updatedT: "Última alteração", none: q => `Nenhuma skill corresponde a “${q}”.`, clear: "Limpar busca",
+    langLabel: "Idioma", foot: "Skills para agentes da polaarts: autocontidas, testadas e prontas para instalar no Claude Code e em outros agentes." },
+};
+const LANGS = { en: "EN", es: "ES", pt: "PT" }, LOCALE = { en: "en-US", es: "es-ES", pt: "pt-BR" };
+function initialLang() {
+  try { const s = localStorage.getItem("ps-lang"); if (T[s]) return s; } catch {}
+  for (const l of navigator.languages || [navigator.language || "en"]) { const k = l.slice(0, 2).toLowerCase(); if (T[k]) return k; }
+  return "en";
+}
+let lang = initialLang(), t = T[lang];
+
+const I = {
+  star: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+  cal: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  arrow: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+};
+const ic = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${I[n]}</svg>`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const store = {
+  get(k) { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+// GitHub API and raw files, cached per tab to stay under the 60 req/h anonymous limit.
+async function api(path) {
+  const key = "gh:" + REPO + path, hit = store.get(key); if (hit) return hit;
+  const r = await fetch(API + path, { headers: { Accept: "application/vnd.github+json" } });
+  if (!r.ok) throw new Error(`GitHub ${r.status}`);
+  const j = await r.json(); store.set(key, j); return j;
+}
+async function raw(path) {
+  const key = "raw:" + REPO + path, hit = store.get(key); if (hit != null) return hit;
+  for (const url of [RAW + path, `../${path}`]) { // second URL: local checkout served from the repo root
+    try { const r = await fetch(url); if (r.ok) { const txt = await r.text(); store.set(key, txt); return txt; } } catch {}
+  }
+  throw new Error(`Could not load ${path}`);
+}
+
+// Minimal YAML for SKILL.md frontmatter: top-level "key: value" plus the one-level "metadata:" map.
+function frontMatter(md) {
+  const out = { metadata: {} }, m = md.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return out;
+  const unq = v => v.trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+  let inMeta = false;
+  for (const line of m[1].split(/\r?\n/)) {
+    const top = line.match(/^([\w-]+):\s*(.*)$/);
+    if (top) { inMeta = top[1] === "metadata" && !top[2].trim(); if (!inMeta) out[top[1]] = unq(top[2]); continue; }
+    const sub = line.match(/^\s+([\w-]+):\s*(.*)$/);
+    if (inMeta && sub) out.metadata[sub[1]] = unq(sub[2]);
+  }
+  return out;
+}
+
+async function load() {
+  const [info, list] = await Promise.allSettled([api(""), api("/contents/skills")]);
+  if (info.status === "fulfilled") stars = info.value.stargazers_count;
+  if (list.status !== "fulfilled") return;
+  const dirs = list.value.filter(e => e.type === "dir").map(e => e.name);
+  const found = await Promise.all(dirs.map(async dir => {
+    try {
+      const [md, commits] = await Promise.all([raw(`skills/${dir}/SKILL.md`), api(`/commits?per_page=1&path=skills/${dir}`).catch(() => [])]);
+      return { dir, fm: frontMatter(md), updated: commits[0]?.commit.committer.date || "" };
+    } catch { return null; } // a folder without SKILL.md is not a skill
+  }));
+  skills = found.filter(Boolean);
+  // A skill gets a link to its own page when one exists (site/skills/<dir>/); otherwise to its folder on GitHub.
+  await Promise.all(skills.map(async s => {
+    try { s.page = (await fetch(`skills/${s.dir}/`, { method: "HEAD" })).ok; } catch { s.page = false; }
+  }));
+}
+
+function card(s) {
+  const md = s.fm.metadata, name = s.fm.name || s.dir;
+  const summary = md[`summary-${lang}`] || md.summary || s.fm.description || "";
+  const category = md[`category-${lang}`] || md.category;
+  const plats = (md.platforms || "").split(",").map(x => x.trim()).filter(Boolean);
+  const href = s.page === false ? `${REPO_URL}/tree/main/skills/${encodeURIComponent(s.dir)}` : `skills/${encodeURIComponent(s.dir)}/`;
+  const ext = s.page === false ? ' target="_blank" rel="noopener"' : "";
+  const day = s.updated ? new Date(s.updated).toLocaleDateString(LOCALE[lang], { month: "short", day: "numeric", year: "numeric" }) : "";
+  return `<a class="card" href="${href}"${ext}>
+    <div class="card-top"><div><h3>${esc(name)}</h3><p class="by">${t.by} <span>${OWNER}</span></p></div>
+      ${md.version ? `<span class="badge">v${esc(md.version)}</span>` : ""}</div>
+    <p class="s">${esc(summary)}</p>
+    <div class="tags">${category ? `<span class="tag">${esc(category)}</span>` : ""}${s.fm.license ? `<span class="tag alt">${t.openSource}</span>` : ""}</div>
+    <div class="plats">${plats.map(p => `<span class="plat">${esc(p)}</span>`).join("")}</div>
+    <div class="card-foot"><div class="m">
+        <span title="${t.starsT}">${ic("star")}${stars.toLocaleString(LOCALE[lang])}</span>
+        ${day ? `<span title="${t.updatedT}">${ic("cal")}${day}</span>` : ""}</div>
+      <span class="as-micro open">${t.open} ${ic("arrow")}</span></div></a>`;
+}
+
+const q = document.getElementById("q"), sortSel = document.getElementById("sort");
+function renderGrid() {
+  const query = norm(q.value.trim());
+  const hits = skills.filter(s => !query || norm([s.fm.name, s.dir, s.fm.description, ...Object.values(s.fm.metadata)].join(" ")).includes(query))
+    .sort(sortSel.value === "az" ? (a, b) => (a.fm.name || a.dir).localeCompare(b.fm.name || b.dir) : (a, b) => (b.updated || "").localeCompare(a.updated || ""));
+  document.getElementById("count").textContent = t.count(hits.length);
+  document.getElementById("grid").innerHTML = hits.length ? hits.map(card).join("")
+    : `<div class="empty">${esc(t.none(q.value.trim()))}<br><button type="button" id="clear">${t.clear}</button></div>`;
+}
+function render() {
+  t = T[lang];
+  document.documentElement.lang = lang;
+  document.getElementById("langs").setAttribute("aria-label", t.langLabel);
+  document.getElementById("langs").innerHTML = Object.entries(LANGS).map(([k, v]) => `<button type="button" data-lang="${k}" lang="${k}" aria-pressed="${k === lang}">${v}</button>`).join("");
+  document.getElementById("eyebrow").textContent = t.eyebrow;
+  document.getElementById("intro").textContent = t.intro;
+  document.getElementById("foot").textContent = t.foot;
+  q.placeholder = t.search;
+  document.getElementById("q-label").textContent = t.searchLabel;
+  document.getElementById("sort-label").textContent = t.sortLabel;
+  const cur = sortSel.value || "newest";
+  sortSel.innerHTML = Object.entries(t.sorts).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  sortSel.value = cur;
+  if (loaded) renderGrid();
+}
+
+q.addEventListener("input", renderGrid);
+sortSel.addEventListener("change", renderGrid);
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (b) { lang = b.dataset.lang; try { localStorage.setItem("ps-lang", lang); } catch {} render(); document.querySelector(`[data-lang="${lang}"]`).focus(); }
+  if (e.target.closest("#clear")) { q.value = ""; renderGrid(); q.focus(); }
+});
+document.addEventListener("keydown", e => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); q.focus(); q.select(); } });
+
+render();
+load().finally(() => { loaded = true; renderGrid(); });
+</script>
+</body>
+</html>
