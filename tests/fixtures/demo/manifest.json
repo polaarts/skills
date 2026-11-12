@@ -1,0 +1,18 @@
+{
+  "options": {"lang": "en", "use": "internal", "detail": "summary", "extras": ["resources"]},
+  "images": [{"file": "images/0130.jpg", "t": 90, "alt": "Chart slide: run time before and after caching"}],
+  "clips": [],
+  "meta": {
+    "id": "demo-000000",
+    "title": "Demo talk",
+    "speaker_or_channel": "Example Channel",
+    "url": null,
+    "local_file": "demo.mp4",
+    "duration": 600,
+    "upload_date": null,
+    "spoken_language": "en",
+    "subtitles": null,
+    "chapters": [],
+    "description": ""
+  }
+}
