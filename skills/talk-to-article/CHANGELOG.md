@@ -26,6 +26,12 @@ All notable changes are listed here. The format follows
   that second instead of opening YouTube (wide screens; on narrow ones the link still opens
   YouTube). Opened from disk (`file://`), YouTube refuses the embed, so the sidebar shows how to
   serve the folder instead.
+- `obsidian.py`: copies a finished article into an Obsidian vault as a note with properties
+  (speaker, url, date, duration, tags, status), the YouTube video embedded, the first mention
+  of each existing vault note turned into a `[[wikilink]]`, and a `Talks.base` table of every
+  talk. Existing notes are never overwritten. Offered in the menu as an extra; the vault path
+  is remembered after the first run. Once exported, the page shows an "Open in Obsidian"
+  button (not in pages for external use, since the link holds a local path).
 
 ### Fixed
 - Page search now covers the intro above the first heading, shows a snippet of the matching

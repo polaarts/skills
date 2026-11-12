@@ -46,7 +46,7 @@ Run scripts as `python3 <skill-dir>/scripts/<name>.py ...` (`python` on Windows)
 Ask the menu before downloading anything; `references/menu.md` has the exact questions,
 options and defaults. One call, four questions: **language** (Español / English / Português) ·
 **use** (internal / external publication) · **detail** (full article / executive summary) ·
-**extras** (resources table, GIFs, clips; multi-select). Don't ask for a destination: it is
+**extras** (resources table, GIFs, clips, Obsidian note; multi-select). Don't ask for a destination: it is
 always the HTML folder.
 
 Use whatever structured-question tool you have (AskUserQuestion, ask_user, request_user_input,
@@ -146,6 +146,13 @@ Headings are the table of contents, so keep them short and meaningful. Open `ind
 clips are referenced from the folder, not embedded: share the whole folder (zip it), never
 the HTML alone. If the user later wants more screenshots, `fetch.py` re-downloads the video
 into the same folder.
+
+**Obsidian (when extras include `obsidian`, or the user asks):** before the final
+`build.py --clean`, run `python3 scripts/obsidian.py <pkg>`, so the page gets an "Open in
+Obsidian" button (internal use only: it holds a local path). The vault path is remembered from the last run; if the
+script says no vault is known yet, ask the user for it and pass it as a second argument. It copies the article into `<vault>/Talks/<folder>/` as a note with properties, the video embedded,
+and the first mention of each existing vault note linked; the first run also creates
+`Talks/Talks.base`. It never overwrites an existing note (the user may have written in it).
 
 ## 8. Report
 

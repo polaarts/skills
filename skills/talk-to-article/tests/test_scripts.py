@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from urllib.parse import quote
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
@@ -17,9 +18,9 @@ sys.path.insert(0, SCRIPTS)
 from common import find_pkg, parse_ts, slug, ts  # noqa: E402
 
 
-def run(script, *args):
+def run(script, *args, env=None):
     return subprocess.run([sys.executable, os.path.join(SCRIPTS, script), *args],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, env=env)
 
 
 class Helpers(unittest.TestCase):
@@ -87,6 +88,43 @@ class Package(unittest.TestCase):
         page = open(os.path.join(self.pkg, "index.html"), encoding="utf-8").read()
         self.assertIn('data-id="na1OyJ3E7Kc" ', page)
         self.assertIn('src="https://www.youtube-nocookie.com/embed/na1OyJ3E7Kc?enablejsapi=1', page)
+
+    def test_obsidian_export(self):
+        import json
+        mf = os.path.join(self.pkg, "manifest.json")
+        m = json.load(open(mf, encoding="utf-8"))
+        m["meta"].update(url="https://www.youtube.com/watch?v=na1OyJ3E7Kc", upload_date="20261020")
+        json.dump(m, open(mf, "w", encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as vault, tempfile.TemporaryDirectory() as home:
+            env = dict(os.environ, HOME=home)  # the remembered vault path goes to a throwaway home
+            self.assertIn("no vault known", run("obsidian.py", self.pkg, env=env).stderr)
+            self.assertEqual(run("obsidian.py", self.pkg, vault, env=env).returncode, 1)  # not a vault
+            os.makedirs(os.path.join(vault, ".obsidian"))
+            for name in ("Cache", "inicio"):  # "inicio": lowercase, never auto-linked
+                open(os.path.join(vault, name + ".md"), "w").close()
+            md = os.path.join(self.pkg, "article.md")
+            open(md, "a", encoding="utf-8").write("\nCache it, Cache it again, `Cache`, inicio.\n")
+            p = run("obsidian.py", self.pkg, vault, env=env)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            note = p.stdout.splitlines()[0]
+            text = open(note, encoding="utf-8").read()
+            self.assertTrue(text.startswith("---\ntitle: "))
+            self.assertIn("published: 2026-10-20\n", text)
+            self.assertIn("![](https://www.youtube.com/watch?v=na1OyJ3E7Kc)", text)
+            self.assertEqual(text.count("[[Cache]]"), 1)  # first mention only
+            self.assertNotIn("[[inicio]]", text)
+            self.assertNotIn("\n# ", text)  # H1 dropped: the note's name is the title
+            self.assertTrue(os.path.isfile(os.path.join(os.path.dirname(note), "images", "0130.jpg")))
+            self.assertTrue(os.path.isfile(os.path.join(vault, "Talks", "Talks.base")))
+            run("build.py", self.pkg, env=env)  # the page links to the exported note
+            page = open(os.path.join(self.pkg, "index.html"), encoding="utf-8").read()
+            self.assertIn('href="obsidian://open?path=' + quote(note) + '"', page)
+            m["options"]["use"] = "external"  # never a local path in a page shared outside
+            json.dump(m, open(mf, "w", encoding="utf-8"))
+            run("build.py", self.pkg, env=env)
+            self.assertNotIn("obsidian://", open(os.path.join(self.pkg, "index.html"), encoding="utf-8").read())
+            p = run("obsidian.py", self.pkg, env=env)  # vault remembered from the first run
+            self.assertIn("already exists", p.stderr)  # ...and never overwrites
 
     def test_clean_keeps_deliverable(self):
         for name in ("video.mp4", "subs.en.json3", "info.json"):

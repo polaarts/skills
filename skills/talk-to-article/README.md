@@ -113,6 +113,7 @@ The deterministic steps are scripts; the judgment is left to the agent.
 | OCR | `ocr.py` | Native OCR fallback for slide text |
 | Validate | `check.py` | Missing files, captions without timestamps, empty sections, placeholders, external-use rules |
 | Build | `build.py` | `article.md` → `index.html`; `--clean` removes working files |
+| Obsidian | `obsidian.py` | Copies the article into a vault as a note: properties, embedded video, links to existing notes, a `Talks.base` index |
 
 The agent writes the outline, chooses the screenshots, writes the article and runs a fidelity
 review against the transcript. The guides it follows are in [`SKILL.md`](SKILL.md) and

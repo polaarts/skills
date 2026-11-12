@@ -1,4 +1,5 @@
 """Shared helpers for talk-to-article scripts. Standard library only."""
+import glob
 import json
 import os
 import shutil
@@ -8,6 +9,25 @@ import sys
 import unicodedata
 
 DEFAULT_ROOT = os.path.expanduser("~/talk-articles")
+VAULT_FILE = "~/.config/talk-to-article/vault"  # last Obsidian vault obsidian.py exported to
+VAULT_FOLDER = "Talks"
+
+
+def saved_vault():
+    try:
+        return open(os.path.expanduser(VAULT_FILE), encoding="utf-8").read().strip() or None
+    except OSError:
+        return None
+
+
+def vault_note(d):
+    """The note obsidian.py exported for package d into the saved vault, if there is one."""
+    vault = saved_vault()
+    if not vault:
+        return None
+    folder = os.path.join(vault, VAULT_FOLDER, os.path.basename(os.path.normpath(d)))
+    notes = sorted(glob.glob(os.path.join(glob.escape(folder), "*.md")))
+    return notes[0] if notes else None
 
 
 def die(msg, code=1):

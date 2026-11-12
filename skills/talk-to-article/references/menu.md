@@ -16,6 +16,8 @@ so there is no destination question.
    - Tabla de recursos (herramientas, comandos, enlaces) — *default on*
    - GIFs de demos animadas
    - Clips .mp4 de momentos clave
+   - Nota en Obsidian (copia el artículo a tu vault, enlazado con tus notas) — *default on* once
+     the user has used it before (`~/.config/talk-to-article/vault` exists)
    With external use, describe clips as "clips cortos (≤ 15 s)".
 
 ## Without a question tool
@@ -27,7 +29,7 @@ Antes de empezar (el resultado es una página HTML con índice lateral):
 1) Idioma:   a) Español  b) English  c) Português
 2) Uso:      a) Interno  b) Publicación externa
 3) Detalle:  a) Artículo completo  b) Resumen ejecutivo
-4) Extras (varios): a) Recursos  b) GIFs  c) Clips
+4) Extras (varios): a) Recursos  b) GIFs  c) Clips  d) Nota en Obsidian
 Responde por ejemplo: 1a 2a 3a 4ab   (Enter = valores por defecto)
 ```
 

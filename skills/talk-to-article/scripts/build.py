@@ -22,16 +22,20 @@ import re
 import shutil
 import sys
 import unicodedata
+from urllib.parse import quote
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import die, load_manifest, pkg_dir, ts  # noqa: E402
+from common import die, load_manifest, pkg_dir, ts, vault_note  # noqa: E402
 
 UI = {  # sidebar strings per article language
     "es": {"toc": "Contenido", "search": "Buscar", "none": "Sin resultados", "theme": "Cambiar tema claro/oscuro",
+           "obsidian": "Abrir la nota en Obsidian",
            "serve": "Para ver el video aquí, abre la carpeta con un servidor local:"},
     "en": {"toc": "Contents", "search": "Search", "none": "No results", "theme": "Toggle light/dark theme",
+           "obsidian": "Open the note in Obsidian",
            "serve": "To play the video here, open the folder through a local server:"},
     "pt": {"toc": "Conteúdo", "search": "Buscar", "none": "Nenhum resultado", "theme": "Alternar tema claro/escuro",
+           "obsidian": "Abrir a nota no Obsidian",
            "serve": "Para ver o vídeo aqui, abra a pasta com um servidor local:"},
 }
 WORK_FILES = ("candidates", "sheets", "peek", "publish", "info.json", "candidates.json",
@@ -65,7 +69,7 @@ font-size:15px;line-height:1.35;font-weight:600;letter-spacing:-.01em;color:var(
 .side-title span{display:block;margin-top:6px;font:11px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute-2)}
 .icon-btn{flex:none;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);border-radius:0;
 background:var(--paper);color:var(--mute-2);cursor:pointer;transition:color .15s,border-color .15s}
-.icon-btn:hover{color:var(--ink);border-color:var(--ink)}.icon-btn svg{width:16px;height:16px}
+a.icon-btn{text-decoration:none}.icon-btn:hover{color:var(--ink);border-color:var(--ink)}.icon-btn svg{width:16px;height:16px}
 .icon-btn .sun{display:none}:root[data-dark] .icon-btn .sun{display:block}:root[data-dark] .icon-btn .moon{display:none}
 .search{position:relative;margin:16px 20px 8px}
 .search input{width:100%;height:36px;padding:0 64px 0 12px;font:12px var(--mono);color:var(--ink);background:var(--paper-2);
@@ -196,6 +200,7 @@ let t;addEventListener('scroll',()=>{cancelAnimationFrame(t);t=requestAnimationF
 """
 
 MOON = '<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+NOTE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>'
 SUN = '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
 # Applied before first paint so a saved theme doesn't flash.
 EARLY = "<script>try{const t=localStorage.getItem('tta-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>"
@@ -298,7 +303,7 @@ def youtube_id(meta):
     return vid if ("youtube.com" in url or "youtu.be" in url) and re.fullmatch(r"[\w-]{11}", vid) else None
 
 
-def sidebar(toc, title, subtitle, ui, video=None):
+def sidebar(toc, title, subtitle, ui, video=None, note=None):
     # The intro (text above the first heading) has no contents entry; this one only shows as a search result.
     rows = [f'<li class="l2 intro" hidden><a href="#top"><span>{html.escape(title)}</span></a></li>']
     for i, (n, hid, t) in enumerate(toc):
@@ -318,7 +323,9 @@ def sidebar(toc, title, subtitle, ui, video=None):
               f'<p hidden>{ui["serve"]}<br><code>python3 -m http.server</code></p></div>') if video else ""
     return (f'<aside class="side"><div class="side-head"><div class="side-title"><b>{html.escape(title)}</b>'
             f'<span>{html.escape(subtitle)}</span></div>'
-            f'<button class="icon-btn theme" type="button" aria-label="{ui["theme"]}" title="{ui["theme"]}">{MOON}{SUN}</button></div>'
+            + (f'<a class="icon-btn" href="obsidian://open?path={quote(note)}" aria-label="{ui["obsidian"]}" '
+               f'title="{ui["obsidian"]}">{NOTE}</a>' if note else "")
+            + f'<button class="icon-btn theme" type="button" aria-label="{ui["theme"]}" title="{ui["theme"]}">{MOON}{SUN}</button></div>'
             f'<div class="search" role="search"><input type="search" placeholder="{ui["search"]}" aria-label="{ui["search"]}" autocomplete="off">'
             f'<kbd>Ctrl K</kbd></div>'
             f'<nav class="toc" aria-label="{ui["toc"]}"><ul>{"".join(rows)}</ul><p class="empty" hidden>{ui["none"]}</p></nav>{player}</aside>')
@@ -351,7 +358,9 @@ def main():
     lang = m["options"].get("lang", "es")
     meta = m["meta"]
     subtitle = " · ".join(x for x in (meta.get("speaker_or_channel"), ts(meta["duration"]) if meta.get("duration") else None) if x)
-    nav = sidebar(toc, html.unescape(re.sub(r"<[^>]+>", "", inline(title))), subtitle, UI.get(lang, UI["en"]), youtube_id(meta)) if toc else ""
+    nav = sidebar(toc, html.unescape(re.sub(r"<[^>]+>", "", inline(title))), subtitle, UI.get(lang, UI["en"]), youtube_id(meta),
+                  # The link holds an absolute local path, so it never goes into pages meant to be shared outside.
+                  None if m["options"].get("use") == "external" else vault_note(d)) if toc else ""
     page = (f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
             f"<title>{html.escape(title)}</title>{EARLY}<style>{font_faces()}{CSS}</style></head><body>"

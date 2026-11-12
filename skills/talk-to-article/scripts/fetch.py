@@ -4,7 +4,7 @@
 Usage:
   fetch.py <url | local-video-file> [--root ~/talk-articles] [--max-height 720]
            [--lang es|en|pt] [--use internal|external] [--detail full|summary]
-           [--extras resources,clips,gifs]
+           [--extras resources,clips,gifs,obsidian]
 
 Creates one folder per talk, <root>/<talk-name>-<id>/, with: manifest.json, info.json, video.<ext>, subs.<lang>.<fmt> (if any).
 Re-running on the same source reuses what is already downloaded.
@@ -118,7 +118,7 @@ def main():
     ap.add_argument("--lang", choices=["es", "en", "pt"])
     ap.add_argument("--use", choices=["internal", "external"])
     ap.add_argument("--detail", choices=["full", "summary"])
-    ap.add_argument("--extras", help="comma list: resources,clips,gifs")
+    ap.add_argument("--extras", help="comma list: resources,clips,gifs,obsidian")
     a = ap.parse_args()
 
     root = os.path.expanduser(a.root)
