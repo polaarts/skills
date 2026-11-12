@@ -19,3 +19,5 @@ All notable changes are listed here. The format follows
 - External-use rules (attribution, condensed content, short clips) checked by `check.py`.
 - Batch mode for playlists and lists of URLs.
 - Offline tests and a demo fixture.
+- Monochrome page design shared with the project site (`site/index.html`): hairline borders,
+  square corners, Geist and Geist Mono embedded from `assets/fonts/` (SIL OFL 1.1).
